@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Pixelify+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Pixelify+Sans:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -32,6 +32,15 @@
     --tf-shadow-gold: 3px 3px 0 #7b5a2a;
     --tf-radius-sm: 4px;
     --tf-radius-md: 6px;
+
+    /* Brutal layer (escopado para .bx-/.lg-/.gc-) — reusa tokens TF acima */
+    --bx-line: var(--tf-text-main);
+    --bx-line-w: 3px;
+    --bx-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+
+  @media (min-width: 980px) {
+    :root { --bx-line-w: 4px; }
   }
 
   html {
@@ -236,4 +245,404 @@
     color: var(--tf-text-main);
     box-shadow: inset 0 0 0 1px rgba(255, 224, 167, 0.06);
   }
+
+  /* =============================================================
+     ============== Brutal layer · Login + Guild Console ==========
+     Prefixo .bx-/.lg-/.gc- · escopado · reusa tokens --tf-*
+     ============================================================= */
+
+  .bx-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: var(--tf-bg-base);
+    font-family: var(--bx-font-mono);
+    color: var(--tf-text-main);
+    line-height: 1.45;
+    font-size: 13px;
+  }
+
+  @media (min-width: 980px) {
+    .bx-screen { padding: 24px; }
+  }
+
+  .bx-shell {
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* ========== Login panel ========== */
+  .lg-panel {
+    border: var(--bx-line-w) solid var(--bx-line);
+    background: var(--tf-bg-elevated);
+    padding: 18px;
+    border-radius: 0;
+  }
+
+  @media (min-width: 980px) {
+    .lg-panel { padding: 28px; }
+  }
+
+  .lg-emblem-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .lg-emblem {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border: var(--bx-line-w) solid var(--bx-line);
+    background: var(--tf-primary);
+    color: var(--tf-text-dark);
+  }
+
+  .lg-title {
+    margin: 0;
+    font-family: var(--bx-font-mono);
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--tf-text-main);
+    text-align: center;
+  }
+
+  @media (min-width: 980px) {
+    .lg-title { font-size: 24px; }
+  }
+
+  .lg-meta {
+    margin: 4px 0 18px;
+    font-family: var(--bx-font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--tf-text-main);
+    text-align: center;
+  }
+
+  .lg-form > * + * {
+    margin-top: 12px;
+  }
+
+  .lg-label {
+    display: block;
+    margin-bottom: 5px;
+    font-family: var(--bx-font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--tf-text-main);
+  }
+
+  .lg-input-wrap {
+    position: relative;
+  }
+
+  .lg-input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tf-text-dim);
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .lg-input {
+    width: 100%;
+    font-family: var(--bx-font-mono);
+    font-size: 13px;
+    padding: 10px 12px 10px 36px;
+    background: var(--tf-bg-inset);
+    border: var(--bx-line-w) solid var(--bx-line);
+    color: var(--tf-text-main);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .lg-input::placeholder {
+    color: var(--tf-text-dim);
+  }
+
+  .lg-input:focus,
+  .lg-input:focus-visible {
+    border-color: var(--tf-primary);
+    color: var(--tf-primary);
+    outline: 2px solid var(--tf-primary);
+    outline-offset: 2px;
+  }
+
+  .lg-input:focus + .lg-input-icon,
+  .lg-input-wrap:focus-within .lg-input-icon {
+    color: var(--tf-primary);
+  }
+
+  .lg-error {
+    margin-top: 6px;
+    font-family: var(--bx-font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--tf-danger);
+  }
+
+  .lg-error-banner {
+    border: var(--bx-line-w) solid var(--tf-danger);
+    background: var(--tf-bg-inset);
+    padding: 10px 12px;
+    font-family: var(--bx-font-mono);
+    font-size: 12px;
+    color: var(--tf-danger);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .lg-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 14px;
+    font-family: var(--bx-font-mono);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    background: var(--tf-primary);
+    color: var(--tf-text-dark);
+    border: var(--bx-line-w) solid var(--bx-line);
+    border-radius: 0;
+    cursor: pointer;
+  }
+
+  .lg-btn:hover:not(:disabled) {
+    background: var(--tf-text-main);
+    color: var(--tf-bg-base);
+  }
+
+  .lg-btn:focus-visible {
+    outline: 2px solid var(--tf-primary);
+    outline-offset: 2px;
+  }
+
+  .lg-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .lg-bottom {
+    margin: 16px 0 0;
+    text-align: center;
+    font-family: var(--bx-font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--tf-text-muted);
+  }
+
+  .lg-bottom a {
+    color: var(--tf-primary);
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 2px;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+
+  .lg-bottom a:hover {
+    color: var(--tf-text-main);
+  }
+
+  /* ========== Guild Console (collapsible) ========== */
+  .gc-details {
+    border: var(--bx-line-w) solid var(--bx-line);
+    background: var(--tf-bg-elevated);
+    border-radius: 0;
+  }
+
+  .gc-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+    background: var(--tf-bg-inset);
+    border-bottom: var(--bx-line-w) solid transparent;
+  }
+
+  .gc-summary::-webkit-details-marker { display: none; }
+  .gc-summary::marker { content: ''; }
+
+  .gc-details[open] > .gc-summary {
+    border-bottom-color: var(--bx-line);
+  }
+
+  .gc-summary:hover { background: var(--tf-bg-panel); }
+
+  .gc-summary-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: var(--bx-line-w) solid var(--bx-line);
+    background: var(--tf-bg-elevated);
+    color: var(--tf-primary);
+    flex-shrink: 0;
+  }
+
+  .gc-summary-text {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--bx-font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--tf-text-main);
+  }
+
+  .gc-summary-text::before {
+    content: '// ';
+    color: var(--tf-text-dim);
+  }
+
+  .gc-summary-hint {
+    font-family: var(--bx-font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--tf-text-dim);
+    display: none;
+  }
+
+  @media (min-width: 540px) {
+    .gc-summary-hint { display: inline; }
+  }
+
+  .gc-chevron {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: var(--bx-line-w) solid var(--bx-line);
+    background: var(--tf-primary);
+    color: var(--tf-text-dark);
+    transition: transform 150ms ease;
+  }
+
+  .gc-details[open] .gc-chevron {
+    transform: rotate(180deg);
+  }
+
+  .gc-content { padding: 18px; }
+
+  @media (min-width: 980px) {
+    .gc-content { padding: 24px; }
+  }
+
+  .gc-headline {
+    margin: 0 0 10px;
+    font-family: var(--bx-font-mono);
+    font-size: clamp(18px, 4.5vw, 26px);
+    font-weight: 700;
+    line-height: 1.15;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--tf-text-main);
+  }
+
+  .gc-tagline {
+    margin: 0 0 14px;
+    font-family: var(--bx-font-mono);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--tf-text-main);
+  }
+
+  @media (min-width: 980px) {
+    .gc-tagline { font-size: 13px; }
+  }
+
+  .gc-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  @media (min-width: 540px) {
+    .gc-cards {
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+  }
+
+  .gc-card {
+    border: var(--bx-line-w) solid var(--bx-line);
+    background: var(--tf-bg-inset);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .gc-card-title {
+    margin: 0;
+    display: inline-block;
+    align-self: flex-start;
+    padding: 2px 6px;
+    border: 2px solid var(--bx-line);
+    font-family: var(--bx-font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--tf-text-dark);
+    line-height: 1.2;
+  }
+
+  .gc-card-painel     .gc-card-title { background: var(--tf-info); }
+  .gc-card-missoes    .gc-card-title { background: var(--tf-success); }
+  .gc-card-conquistas .gc-card-title { background: var(--tf-warning); }
+
+  .gc-card-text {
+    margin: 0;
+    font-family: var(--bx-font-mono);
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--tf-text-muted);
+  }
+
+  @media (min-width: 980px) {
+    .gc-card-text { font-size: 12px; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .gc-details[open] .gc-content {
+      animation: gc-slide-down 180ms ease-out;
+    }
+  }
+}
+
+/* @keyframes precisa estar no top-level (fora de @layer) para suporte cross-browser consistente */
+@keyframes gc-slide-down {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
