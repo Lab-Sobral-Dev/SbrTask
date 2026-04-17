@@ -118,13 +118,13 @@ export const updateTask = async (req: Request, res: Response) => {
     const task = await prisma.task.update({
       where: { id },
       data: {
-        ...(title && { title }),
-        ...(description && { description }),
-        ...(priority && { priority }),
-        ...(status && { status }),
-        ...(dueDate && { dueDate: new Date(dueDate) }),
-        ...(category && { category }),
-        ...(xpReward && { xpReward })
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(priority !== undefined && { priority }),
+        ...(status !== undefined && { status }),
+        ...(dueDate !== undefined && { dueDate: new Date(dueDate) }),
+        ...(category !== undefined && { category }),
+        ...(xpReward !== undefined && { xpReward })
       }
     });
 

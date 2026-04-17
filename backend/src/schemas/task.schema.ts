@@ -4,7 +4,7 @@ export const createTaskSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório').max(200),
   description: z.string().max(2000).optional(),
   priority: z.enum(['simple', 'medium', 'critical']).optional().default('medium'),
-  dueDate: z.string().datetime({ offset: true }).optional(),
+  dueDate: z.string().date().optional(),
   category: z.string().max(100).optional(),
   xpReward: z.number().int().positive().optional(),
 });
@@ -14,7 +14,7 @@ export const updateTaskSchema = z.object({
   description: z.string().max(2000).optional(),
   priority: z.enum(['simple', 'medium', 'critical']).optional(),
   status: z.enum(['pending', 'in_progress', 'completed']).optional(),
-  dueDate: z.string().datetime({ offset: true }).optional(),
+  dueDate: z.string().date().optional(),
   category: z.string().max(100).optional(),
   xpReward: z.number().int().positive().optional(),
 });
