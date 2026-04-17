@@ -1,16 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { AuthRequest } from '../middlewares/auth';
-
-interface TaskBody {
-  title: string;
-  description?: string;
-  priority?: string;
-  status?: string;
-  dueDate?: string;
-  category?: string;
-  xpReward?: number;
-}
+import { createTaskSchema, updateTaskSchema } from '../schemas/task.schema';
 
 // Helper to get string id from params
 const getIdParam = (param: string | string[] | undefined): string => {
@@ -33,18 +24,23 @@ const getXPReward = (priority: string, baseXP: number = 10): number => {
 };
 
 export const createTask = async (req: Request, res: Response) => {
+  const parsed = createTaskSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Dados inválidos', details: parsed.error.flatten() });
+  }
+
   try {
     const authReq = req as AuthRequest;
-    const { title, description, priority, dueDate, category, xpReward } = req.body as TaskBody;
+    const { title, description, priority, dueDate, category, xpReward } = parsed.data;
 
     const task = await prisma.task.create({
       data: {
         title,
         description,
-        priority: priority || 'medium',
+        priority,
         dueDate: dueDate ? new Date(dueDate) : null,
         category,
-        xpReward: xpReward || getXPReward(priority || 'medium'),
+        xpReward: xpReward ?? getXPReward(priority),
         userId: authReq.userId!
       }
     });
@@ -100,10 +96,15 @@ export const getTaskById = async (req: Request, res: Response) => {
 };
 
 export const updateTask = async (req: Request, res: Response) => {
+  const parsed = updateTaskSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: 'Dados inválidos', details: parsed.error.flatten() });
+  }
+
   try {
     const authReq = req as AuthRequest;
     const id = getIdParam(req.params.id);
-    const { title, description, priority, status, dueDate, category, xpReward } = req.body as TaskBody;
+    const { title, description, priority, status, dueDate, category, xpReward } = parsed.data;
 
     // Verificar se a tarefa pertence ao usuário
     const existingTask = await prisma.task.findFirst({
