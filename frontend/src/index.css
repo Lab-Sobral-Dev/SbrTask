@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=Pixelify+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -81,9 +81,17 @@
 }
 
 @layer components {
+  /*
+   * .tf-title — headline brutal aplicada system-wide.
+   * IBM Plex Mono uppercase + tracking ajustado por contexto via Tailwind utility.
+   * Eyebrows pequenos podem reforcar tracking com tracking-[0.18em].
+   * Headlines grandes herdam o tracking levemente negativo desta base.
+   */
   .tf-title {
-    font-family: 'Pixelify Sans', sans-serif;
-    letter-spacing: 0.04em;
+    font-family: var(--bx-font-mono);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
   }
 
   .tf-screen {
