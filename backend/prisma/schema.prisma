@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  sector    String
+  role      String   @default("user")
+  level     Int      @default(1)
+  xp        Int      @default(0)
+  avatar    Json?    @default("{\"skinTone\":\"#F5D0B5\",\"hairStyle\":\"hair-1\",\"hairColor\":\"#4A3728\",\"eyes\":{\"color\":\"#4B7B4B\",\"shape\":\"round\"},\"outfit\":\"outfit-1\",\"accessories\":[]}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tasks     Task[]
+  achievements UserAchievement[]
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  priority    String   @default("medium") // simple, medium, critical
+  status      String   @default("pending") // pending, in_progress, completed
+  dueDate     DateTime?
+  category    String?
+  xpReward    Int      @default(10)
+  completedAt DateTime?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  requirement Int      // Quantidade necessária para desbloquear
+  type        String   // daily, weekly, milestone
+  xpReward    Int      @default(0)
+  users       UserAchievement[]
+}
+
+model UserAchievement {
+  id             String      @id @default(uuid())
+  userId         String
+  achievementId  String
+  achievedAt     DateTime    @default(now())
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement    Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+}
