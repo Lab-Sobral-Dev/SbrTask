@@ -107,7 +107,7 @@ export const createAchievement = async (req: Request, res: Response) => {
 
 export const updateAchievement = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { name, description, icon, requirement, type, xpReward } = req.body;
     const achievement = await prisma.achievement.update({
       where: { id },
@@ -129,7 +129,7 @@ export const updateAchievement = async (req: Request, res: Response) => {
 
 export const deleteAchievement = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     await prisma.achievement.delete({ where: { id } });
     res.json({ message: 'Conquista removida' });
   } catch (error) {
