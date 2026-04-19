@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Crown, Shield, Sword, User, Zap } from 'lucide-react';
 import CharacterEditor from '../components/character/CharacterEditor';
-import { AvatarData } from '../components/character/Avatar';
+import type { AvatarData } from '../types';
 import { useAuthStore } from '../hooks/useAuthStore';
 import { auth } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
@@ -55,13 +55,17 @@ const Register: React.FC = () => {
   const saveFormData = (data: RegisterForm) => {
     sessionStorage.setItem('registerData', JSON.stringify(data));
     setAvatar({
-      skinTone: '#F2CDB1',
-      hairStyle: 'hair-1',
+      skinColor: '#F2CDB1',
+      hair: 'hair-1',
       hairColor: '#4A3728',
-      facialHair: 'none',
-      eyes: { color: '#4B7B4B', shape: 'round' },
-      outfit: 'outfit-1',
+      eyes: 'round',
+      eyebrows: 'default',
+      mouth: 'smile',
+      beard: null,
+      clothing: 'outfit-1',
+      clothingColor: '#1A1A1A',
       accessories: [],
+      backgroundColor: '#E8E8E8',
     });
     setStep('character');
   };
