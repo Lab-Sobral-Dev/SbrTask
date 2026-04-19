@@ -13,27 +13,25 @@ interface AvatarProps {
 const sizes = { sm: 40, md: 80, lg: 120 };
 
 export const Avatar: React.FC<AvatarProps> = ({ data, size = 'md', className }) => {
-  const svg = useMemo(() => {
-    try {
-      const avatar = createAvatar(pixelArt, {
+  const svg = useMemo(
+    () =>
+      createAvatar(pixelArt, {
         skinColor: [data.skinColor],
         hair: [data.hair],
         hairColor: [data.hairColor],
         eyes: [data.eyes],
+        eyebrows: [data.eyebrows],
         mouth: [data.mouth],
+        beard: data.beard ? [data.beard] : [],
+        beardProbability: data.beard ? 100 : 0,
         clothing: [data.clothing],
         clothingColor: [data.clothingColor],
-        beard: data.beard ? [data.beard] : undefined,
-        beardProbability: data.beard ? 100 : 0,
-        accessories: data.accessories && data.accessories.length ? data.accessories : undefined,
-        accessoriesProbability: data.accessories && data.accessories.length ? 100 : 0,
-      });
-      return avatar.toString();
-    } catch (error) {
-      console.error('Error generating avatar:', error);
-      return '<svg></svg>';
-    }
-  }, [data]);
+        accessories: data.accessories.length ? data.accessories : [],
+        accessoriesProbability: data.accessories.length ? 100 : 0,
+        backgroundColor: [data.backgroundColor],
+      }).toString(),
+    [data],
+  );
 
   const px = sizes[size];
   return (

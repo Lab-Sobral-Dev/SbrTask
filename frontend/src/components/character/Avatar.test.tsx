@@ -1,6 +1,18 @@
 import { render } from '@testing-library/react';
+import { vi } from 'vitest';
 import { Avatar } from './Avatar';
 import { DEFAULT_AVATAR } from './avatar-options';
+
+// Mock dicebear modules
+vi.mock('@dicebear/core', () => ({
+  createAvatar: vi.fn(() => ({
+    toString: () => '<svg></svg>',
+  })),
+}));
+
+vi.mock('@dicebear/pixel-art', () => ({
+  pixelArt: {},
+}));
 
 describe('Avatar', () => {
   it('renders an svg for valid avatar data', () => {
