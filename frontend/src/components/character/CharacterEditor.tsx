@@ -1,115 +1,111 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Check } from 'lucide-react';
-import { Avatar, AvatarData } from './Avatar';
+import { createAvatar } from '@dicebear/core';
+import { pixelArt } from '@dicebear/pixel-art';
+import { Avatar } from './Avatar';
+import type { AvatarData } from '../../types';
+import { cn } from '../../lib/utils';
+import {
+  SKIN_COLORS,
+  HAIR_COLORS,
+  HAIR_STYLES,
+  EYE_VARIANTS,
+  EYEBROW_VARIANTS,
+  MOUTH_VARIANTS,
+  CLOTHING_VARIANTS,
+  CLOTHING_COLORS,
+  BEARD_VARIANTS,
+  ACCESSORY_OPTIONS,
+  DEFAULT_AVATAR,
+} from './avatar-options';
 
 interface CharacterEditorProps {
   initialData?: AvatarData;
   onComplete: (avatar: AvatarData) => void;
 }
 
-const hairStyles = [
-  { id: 'hair-1', name: 'Curto classico' },
-  { id: 'hair-2', name: 'Longo' },
-  { id: 'hair-3', name: 'Ondulado' },
-  { id: 'hair-4', name: 'Encaracolado' },
-  { id: 'hair-5', name: 'Moicano' },
-  { id: 'hair-6', name: 'Volumoso' },
-  { id: 'hair-7', name: 'Raspado' },
-  { id: 'hair-8', name: 'Lateral' },
-  { id: 'hair-9', name: 'Presa' },
-  { id: 'hair-10', name: 'Espigado' },
-];
+const buildOptions = (data: AvatarData) => ({
+  skinColor: [data.skinColor],
+  hair: [data.hair],
+  hairColor: [data.hairColor],
+  eyes: [data.eyes],
+  eyebrows: [data.eyebrows],
+  mouth: [data.mouth],
+  beard: data.beard ? [data.beard] : [],
+  beardProbability: data.beard ? 100 : 0,
+  clothing: [data.clothing],
+  clothingColor: [data.clothingColor],
+  accessories: data.accessories.length ? data.accessories : [],
+  accessoriesProbability: data.accessories.length ? 100 : 0,
+  backgroundColor: [data.backgroundColor],
+});
 
-const skinTones = [
-  '#F7D7C4', '#F2CDB1', '#E8C4A8', '#DEB48F', '#D4A888', '#C4906C',
-  '#B47B59', '#A87858', '#94654B', '#8B5E3C', '#6B4423', '#4A3018',
-];
-
-const hairColors = [
-  '#4A3728', '#2C1810', '#8B4513', '#D2691E', '#CFA15B', '#FFD700',
-  '#8B0000', '#9B2C2C', '#4B0082', '#243B6B', '#000000', '#FFFFFF',
-  '#FF69B4', '#00CED1',
-];
-
-const eyeColors = [
-  '#4B7B4B', '#3D5A80', '#6B4423', '#4A3728', '#4682B4',
-  '#8B4513', '#2E8B57', '#191970', '#8B2F6B',
-];
-
-const eyeShapes = [
-  { id: 'round', name: 'Redondo' },
-  { id: 'oval', name: 'Oval' },
-  { id: 'almond', name: 'Amendoado' },
-  { id: 'narrow', name: 'Focado' },
-  { id: 'sleepy', name: 'Calmo' },
-];
-
-const outfits = [
-  { id: 'outfit-1', name: 'Casual', color: '#5B7C99' },
-  { id: 'outfit-2', name: 'Elegante', color: '#7B5E57' },
-  { id: 'outfit-3', name: 'Verde', color: '#6B8E6B' },
-  { id: 'outfit-4', name: 'Aventureiro', color: '#8B7B6B' },
-  { id: 'outfit-5', name: 'Escolar', color: '#5B6B8B' },
-  { id: 'outfit-6', name: 'Casaco', color: '#8A4D4D' },
-  { id: 'outfit-7', name: 'Uniforme', color: '#4C5C7A' },
-  { id: 'outfit-8', name: 'Cowboy', color: '#C67D3A' },
-  { id: 'outfit-9', name: 'Robe', color: '#684F8F' },
-  { id: 'outfit-10', name: 'Tatico', color: '#3B5E56' },
-];
-
-const facialHairStyles = [
-  { id: 'none', name: 'Sem barba' },
-  { id: 'mustache', name: 'Bigode' },
-  { id: 'goatee', name: 'Cavanhaque' },
-  { id: 'beard', name: 'Barba curta' },
-  { id: 'full', name: 'Barba cheia' },
-];
-
-const accessories = [
-  { id: 'glasses', name: 'Oculos', color: '#6fa8dc' },
-  { id: 'hat', name: 'Chapeu', color: '#8a3131' },
-  { id: 'bandana', name: 'Bandana', color: '#8a3131' },
-  { id: 'visor', name: 'Visor', color: '#5f708f' },
-];
-
-const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComplete }) => {
-  const [avatar, setAvatar] = useState<AvatarData>(
-    initialData || {
-      skinTone: '#F2CDB1',
-      hairStyle: 'hair-1',
-      hairColor: '#4A3728',
-      facialHair: 'none',
-      eyes: { color: '#4B7B4B', shape: 'round' },
-      outfit: 'outfit-1',
-      accessories: [],
-    },
+const MiniAvatar = ({
+  base,
+  overrides,
+  isSelected,
+  onSelect,
+  label,
+}: {
+  base: AvatarData;
+  overrides: Record<string, unknown>;
+  isSelected: boolean;
+  onSelect: () => void;
+  label?: string;
+}) => {
+  const svg = useMemo(
+    () => createAvatar(pixelArt, { ...buildOptions(base), ...overrides }).toString(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [JSON.stringify({ ...buildOptions(base), ...overrides })],
   );
 
-  const [activeTab, setActiveTab] = useState<'skin' | 'hair' | 'eyes' | 'outfit' | 'extras'>('skin');
+  return (
+    <button
+      onClick={onSelect}
+      title={label}
+      className={cn(
+        'rounded border-2 p-0.5 transition-colors hover:border-[color:var(--tf-primary)]',
+        isSelected
+          ? 'border-[color:var(--tf-primary)] shadow-[0_0_0_2px_rgba(217,164,65,0.25)]'
+          : 'border-[color:var(--tf-border-soft)]',
+      )}
+    >
+      <div dangerouslySetInnerHTML={{ __html: svg }} style={{ width: 48, height: 48 }} />
+    </button>
+  );
+};
+
+const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComplete }) => {
+  const [avatar, setAvatar] = useState<AvatarData>(initialData ?? DEFAULT_AVATAR);
+  const [activeTab, setActiveTab] = useState<'skin' | 'hair' | 'rosto' | 'roupa' | 'extras'>('skin');
 
   const tabs = [
     { id: 'skin', label: 'Pele' },
     { id: 'hair', label: 'Cabelo' },
-    { id: 'eyes', label: 'Olhos' },
-    { id: 'outfit', label: 'Roupa' },
+    { id: 'rosto', label: 'Rosto' },
+    { id: 'roupa', label: 'Roupa' },
     { id: 'extras', label: 'Extras' },
   ] as const;
 
-  const updateAvatar = (updates: Partial<AvatarData>) => {
-    setAvatar((prev) => ({ ...prev, ...updates }));
-  };
+  const update = (patch: Partial<AvatarData>) => setAvatar((prev) => ({ ...prev, ...patch }));
 
-  const toggleAccessory = (accessoryId: string) => {
-    const active = avatar.accessories.includes(accessoryId);
-    updateAvatar({
-      accessories: active
-        ? avatar.accessories.filter((item) => item !== accessoryId)
-        : [...avatar.accessories, accessoryId],
+  const toggleAccessory = (id: string) => {
+    update({
+      accessories: avatar.accessories.includes(id)
+        ? avatar.accessories.filter((a) => a !== id)
+        : [...avatar.accessories, id],
     });
   };
 
   const choiceClass = (selected: boolean) =>
     `tf-btn ${selected ? 'tf-btn-primary' : 'tf-btn-secondary'} !px-4 !py-2 !text-sm`;
+
+  const swatchClass = (selected: boolean) =>
+    `h-10 w-10 rounded-[4px] border-2 transition-transform hover:-translate-y-0.5 ${
+      selected
+        ? 'border-[color:var(--tf-primary)] shadow-[0_0_0_2px_rgba(217,164,65,0.25)]'
+        : 'border-[color:var(--tf-border-soft)]'
+    }`;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
@@ -117,7 +113,7 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComple
         <p className="tf-title text-xs uppercase tracking-[0.16em] text-[color:var(--tf-primary)]">Retrato</p>
         <div className="mt-4 flex flex-col items-center">
           <div className="tf-frame relative w-full max-w-[220px] p-3">
-            <div className="tf-panel-inset flex h-[320px] items-center justify-center p-4">
+            <div className="tf-panel-inset flex h-[220px] items-center justify-center p-4">
               <Avatar data={avatar} size="lg" className="drop-shadow-[0_6px_0_rgba(10,15,20,0.85)]" />
             </div>
             <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
@@ -143,16 +139,13 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComple
           {activeTab === 'skin' && (
             <div>
               <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Tom de pele</h3>
-              <p className="mt-1 text-sm text-[color:var(--tf-text-muted)]">Mais variedade para aproximar o avatar do personagem que voce imaginou.</p>
               <div className="mt-5 flex flex-wrap gap-3">
-                {skinTones.map((tone) => (
+                {SKIN_COLORS.map(({ id, hex }) => (
                   <button
-                    key={tone}
-                    onClick={() => updateAvatar({ skinTone: tone })}
-                    className={`h-11 w-11 rounded-[4px] border-2 transition-transform hover:-translate-y-0.5 ${
-                      avatar.skinTone === tone ? 'border-[color:var(--tf-primary)] shadow-[0_0_0_2px_rgba(217,164,65,0.25)]' : 'border-[color:var(--tf-border-soft)]'
-                    }`}
-                    style={{ backgroundColor: tone }}
+                    key={id}
+                    onClick={() => update({ skinColor: id })}
+                    className={swatchClass(avatar.skinColor === id)}
+                    style={{ backgroundColor: hex }}
                   />
                 ))}
               </div>
@@ -163,25 +156,28 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComple
             <div className="space-y-6">
               <div>
                 <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Estilo do cabelo</h3>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {hairStyles.map((style) => (
-                    <button key={style.id} onClick={() => updateAvatar({ hairStyle: style.id })} className={choiceClass(avatar.hairStyle === style.id)}>
-                      {style.name}
-                    </button>
+                <div className="mt-4 flex max-h-[200px] flex-wrap gap-2 overflow-y-auto">
+                  {HAIR_STYLES.map((style) => (
+                    <MiniAvatar
+                      key={style}
+                      base={avatar}
+                      overrides={{ hair: [style] }}
+                      isSelected={avatar.hair === style}
+                      onSelect={() => update({ hair: style })}
+                      label={style}
+                    />
                   ))}
                 </div>
               </div>
               <div>
                 <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Cor do cabelo</h3>
                 <div className="mt-4 flex flex-wrap gap-3">
-                  {hairColors.map((color) => (
+                  {HAIR_COLORS.map(({ id, hex }) => (
                     <button
-                      key={color}
-                      onClick={() => updateAvatar({ hairColor: color })}
-                      className={`h-10 w-10 rounded-[4px] border-2 transition-transform hover:-translate-y-0.5 ${
-                        avatar.hairColor === color ? 'border-[color:var(--tf-primary)] shadow-[0_0_0_2px_rgba(217,164,65,0.25)]' : 'border-[color:var(--tf-border-soft)]'
-                      }`}
-                      style={{ backgroundColor: color }}
+                      key={id}
+                      onClick={() => update({ hairColor: id })}
+                      className={swatchClass(avatar.hairColor === id)}
+                      style={{ backgroundColor: hex }}
                     />
                   ))}
                 </div>
@@ -189,47 +185,85 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComple
             </div>
           )}
 
-          {activeTab === 'eyes' && (
+          {activeTab === 'rosto' && (
             <div className="space-y-6">
               <div>
-                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Cor dos olhos</h3>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {eyeColors.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => updateAvatar({ eyes: { ...avatar.eyes, color } })}
-                      className={`h-10 w-10 rounded-[4px] border-2 transition-transform hover:-translate-y-0.5 ${
-                        avatar.eyes.color === color ? 'border-[color:var(--tf-primary)] shadow-[0_0_0_2px_rgba(217,164,65,0.25)]' : 'border-[color:var(--tf-border-soft)]'
-                      }`}
-                      style={{ backgroundColor: color }}
+                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Olhos</h3>
+                <div className="mt-4 flex max-h-[160px] flex-wrap gap-2 overflow-y-auto">
+                  {EYE_VARIANTS.map((v) => (
+                    <MiniAvatar
+                      key={v}
+                      base={avatar}
+                      overrides={{ eyes: [v] }}
+                      isSelected={avatar.eyes === v}
+                      onSelect={() => update({ eyes: v })}
+                      label={v}
                     />
                   ))}
                 </div>
               </div>
               <div>
-                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Formato dos olhos</h3>
+                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Sobrancelhas</h3>
+                <div className="mt-4 flex max-h-[120px] flex-wrap gap-2 overflow-y-auto">
+                  {EYEBROW_VARIANTS.map((v) => (
+                    <MiniAvatar
+                      key={v}
+                      base={avatar}
+                      overrides={{ eyebrows: [v] }}
+                      isSelected={avatar.eyebrows === v}
+                      onSelect={() => update({ eyebrows: v })}
+                      label={v}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Boca</h3>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {eyeShapes.map((shape) => (
-                    <button key={shape.id} onClick={() => updateAvatar({ eyes: { ...avatar.eyes, shape: shape.id } })} className={choiceClass(avatar.eyes.shape === shape.id)}>
-                      {shape.name}
-                    </button>
+                  {MOUTH_VARIANTS.map((v) => (
+                    <MiniAvatar
+                      key={v}
+                      base={avatar}
+                      overrides={{ mouth: [v] }}
+                      isSelected={avatar.mouth === v}
+                      onSelect={() => update({ mouth: v })}
+                      label={v}
+                    />
                   ))}
                 </div>
               </div>
             </div>
           )}
 
-          {activeTab === 'outfit' && (
-            <div>
-              <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Roupa</h3>
-              <p className="mt-1 text-sm text-[color:var(--tf-text-muted)]">Mais silhuetas e fantasias para dar personalidade ao boneco.</p>
-              <div className="mt-5 flex flex-wrap gap-2">
-                {outfits.map((outfit) => (
-                  <button key={outfit.id} onClick={() => updateAvatar({ outfit: outfit.id })} className={choiceClass(avatar.outfit === outfit.id)}>
-                    <span className="h-4 w-4 rounded-[2px] border border-black/25" style={{ backgroundColor: outfit.color }} />
-                    {outfit.name}
-                  </button>
-                ))}
+          {activeTab === 'roupa' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Roupa</h3>
+                <div className="mt-4 flex max-h-[200px] flex-wrap gap-2 overflow-y-auto">
+                  {CLOTHING_VARIANTS.map((v) => (
+                    <MiniAvatar
+                      key={v}
+                      base={avatar}
+                      overrides={{ clothing: [v] }}
+                      isSelected={avatar.clothing === v}
+                      onSelect={() => update({ clothing: v })}
+                      label={v}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Cor da roupa</h3>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {CLOTHING_COLORS.map(({ id, hex }) => (
+                    <button
+                      key={id}
+                      onClick={() => update({ clothingColor: id })}
+                      className={swatchClass(avatar.clothingColor === id)}
+                      style={{ backgroundColor: hex }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -239,21 +273,39 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComple
               <div>
                 <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Barba</h3>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {facialHairStyles.map((style) => (
-                    <button key={style.id} onClick={() => updateAvatar({ facialHair: style.id })} className={choiceClass(avatar.facialHair === style.id)}>
-                      {style.name}
-                    </button>
-                  ))}
+                  {BEARD_VARIANTS.map(({ id, label }) =>
+                    id === null ? (
+                      <button
+                        key="none"
+                        onClick={() => update({ beard: null })}
+                        className={choiceClass(avatar.beard === null)}
+                      >
+                        {label}
+                      </button>
+                    ) : (
+                      <MiniAvatar
+                        key={id}
+                        base={avatar}
+                        overrides={{ beard: [id], beardProbability: 100 }}
+                        isSelected={avatar.beard === id}
+                        onSelect={() => update({ beard: id })}
+                        label={label}
+                      />
+                    ),
+                  )}
                 </div>
               </div>
               <div>
                 <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Acessorios</h3>
                 <p className="mt-1 text-sm text-[color:var(--tf-text-muted)]">Voce pode combinar varios ao mesmo tempo.</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {accessories.map((item) => (
-                    <button key={item.id} onClick={() => toggleAccessory(item.id)} className={choiceClass(avatar.accessories.includes(item.id))}>
-                      <span className="h-4 w-4 rounded-[2px] border border-black/25" style={{ backgroundColor: item.color }} />
-                      {item.name}
+                  {ACCESSORY_OPTIONS.map(({ id, label }) => (
+                    <button
+                      key={id}
+                      onClick={() => toggleAccessory(id)}
+                      className={choiceClass(avatar.accessories.includes(id))}
+                    >
+                      {label}
                     </button>
                   ))}
                 </div>
