@@ -31,7 +31,7 @@ export const Avatar: React.FC<AvatarProps> = ({ data, size = 'md', className }) 
         accessories: data.accessories.length ? data.accessories : [],
         accessoriesProbability: data.accessories.length ? 100 : 0,
         backgroundColor: [data.backgroundColor],
-      }).toString(),
+      } as any).toString(),
     [data],
   );
 

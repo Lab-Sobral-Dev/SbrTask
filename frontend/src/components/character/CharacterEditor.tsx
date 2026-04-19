@@ -40,7 +40,7 @@ const buildOptions = (data: AvatarData) => ({
   accessories: data.accessories.length ? data.accessories : [],
   accessoriesProbability: data.accessories.length ? 100 : 0,
   backgroundColor: [data.backgroundColor],
-});
+} as any);
 
 const MiniAvatar = ({
   base,
