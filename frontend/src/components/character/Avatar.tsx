@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { createAvatar } from '@dicebear/core';
-import { pixelArt } from '@dicebear/pixel-art';
+import { create, meta, schema } from '@dicebear/pixel-art';
 import type { AvatarData } from '../../types';
 import { cn } from '../../lib/utils';
 
@@ -12,10 +12,12 @@ interface AvatarProps {
 
 const sizes = { sm: 40, md: 80, lg: 120 };
 
+const pixelArtStyle = { meta, schema, create };
+
 export const Avatar: React.FC<AvatarProps> = ({ data, size = 'md', className }) => {
   const svg = useMemo(
     () =>
-      createAvatar(pixelArt, {
+      createAvatar(pixelArtStyle, {
         skinColor: [data.skinColor],
         hair: [data.hair],
         hairColor: [data.hairColor],

@@ -11,7 +11,9 @@ vi.mock('@dicebear/core', () => ({
 }));
 
 vi.mock('@dicebear/pixel-art', () => ({
-  pixelArt: {},
+  meta: {},
+  schema: {},
+  create: vi.fn(),
 }));
 
 describe('Avatar', () => {

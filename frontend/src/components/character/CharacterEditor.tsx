@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Check } from 'lucide-react';
 import { createAvatar } from '@dicebear/core';
-import { pixelArt } from '@dicebear/pixel-art';
+import { create, meta, schema } from '@dicebear/pixel-art';
 import { Avatar } from './Avatar';
 import type { AvatarData } from '../../types';
 import { cn } from '../../lib/utils';
@@ -23,6 +23,8 @@ interface CharacterEditorProps {
   initialData?: AvatarData;
   onComplete: (avatar: AvatarData) => void;
 }
+
+const pixelArtStyle = { meta, schema, create };
 
 const buildOptions = (data: AvatarData) => ({
   skinColor: [data.skinColor],
@@ -54,7 +56,7 @@ const MiniAvatar = ({
   label?: string;
 }) => {
   const svg = useMemo(
-    () => createAvatar(pixelArt, { ...buildOptions(base), ...overrides }).toString(),
+    () => createAvatar(pixelArtStyle, { ...buildOptions(base), ...overrides }).toString(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [JSON.stringify({ ...buildOptions(base), ...overrides })],
   );
