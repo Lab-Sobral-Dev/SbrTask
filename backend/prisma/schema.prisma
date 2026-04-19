@@ -16,7 +16,7 @@ model User {
   role      String   @default("user")
   level     Int      @default(1)
   xp        Int      @default(0)
-  avatar    Json?    @default("{\"skinTone\":\"#F5D0B5\",\"hairStyle\":\"hair-1\",\"hairColor\":\"#4A3728\",\"eyes\":{\"color\":\"#4B7B4B\",\"shape\":\"round\"},\"outfit\":\"outfit-1\",\"accessories\":[]}")
+  avatar    Json?    @default("{\"skinColor\":\"warm\",\"hair\":\"short01\",\"hairColor\":\"brown\",\"eyes\":\"variant01\",\"eyebrows\":\"variant01\",\"mouth\":\"happy01\",\"beard\":null,\"clothing\":\"variant01\",\"clothingColor\":\"blue01\",\"accessories\":[],\"backgroundColor\":\"1e293b\"}")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   tasks     Task[]
