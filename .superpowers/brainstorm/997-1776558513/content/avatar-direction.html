@@ -1,0 +1,82 @@
+<h2>Que direção tomar com os avatares?</h2>
+<p class="subtitle">O avatar atual é um sprite pixel art handcrafted em SVG puro. Qual é o objetivo da melhoria?</p>
+
+<div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.04); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+  <p class="label">Estado atual</p>
+  <div style="display: flex; align-items: center; gap: 1.5rem; margin-top: 0.75rem;">
+    <svg viewBox="0 0 240 320" width="60" height="80" style="shape-rendering: crispEdges; flex-shrink: 0;">
+      <!-- outline head -->
+      <rect x="80" y="40" width="80" height="10" fill="#10151b"/>
+      <rect x="70" y="50" width="10" height="10" fill="#10151b"/><rect x="160" y="50" width="10" height="10" fill="#10151b"/>
+      <!-- skin face -->
+      <rect x="80" y="50" width="80" height="10" fill="#C68642"/>
+      <rect x="70" y="60" width="100" height="60" fill="#C68642"/>
+      <!-- hair -->
+      <rect x="80" y="30" width="80" height="20" fill="#4a2c0a"/>
+      <rect x="70" y="40" width="100" height="20" fill="#4a2c0a"/>
+      <rect x="60" y="50" width="20" height="20" fill="#4a2c0a"/><rect x="160" y="50" width="20" height="20" fill="#4a2c0a"/>
+      <!-- eyes -->
+      <rect x="90" y="100" width="20" height="10" fill="#f2efe6"/>
+      <rect x="130" y="100" width="20" height="10" fill="#f2efe6"/>
+      <rect x="100" y="100" width="10" height="10" fill="#3a5a8c"/>
+      <rect x="130" y="100" width="10" height="10" fill="#3a5a8c"/>
+      <!-- mouth -->
+      <rect x="100" y="140" width="10" height="5" fill="#b86d74"/>
+      <rect x="110" y="150" width="20" height="5" fill="#b86d74"/>
+      <rect x="130" y="140" width="10" height="5" fill="#b86d74"/>
+      <!-- body -->
+      <rect x="80" y="180" width="80" height="10" fill="#5B7C99"/>
+      <rect x="70" y="190" width="100" height="70" fill="#5B7C99"/>
+      <!-- legs -->
+      <rect x="80" y="260" width="30" height="60" fill="#3D5A73"/>
+      <rect x="130" y="260" width="30" height="60" fill="#3D5A73"/>
+      <!-- boots -->
+      <rect x="60" y="300" width="50" height="10" fill="#1b1f24"/>
+      <rect x="140" y="300" width="50" height="10" fill="#1b1f24"/>
+    </svg>
+    <div>
+      <strong style="color: #e2e8f0;">Pixel art SVG customizado</strong>
+      <p style="margin: 0.3rem 0 0; color: #94a3b8; font-size: 0.85rem;">Grid 24×32, ~15 palettes, 10 penteados, 10 roupas, acessórios. 100% handcrafted, zero dependências externas.</p>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Trocar por biblioteca externa</h3>
+      <p>DiceBear, Boring Avatars, ou similar. Estilos prontos, mais diversidade visual, menos manutenção de sprite. Perde controle total e adiciona dependência.</p>
+      <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;">
+        <span style="padding:2px 8px;background:#1e3a5f;border-radius:4px;font-size:0.75rem;color:#7dd3fc;">DiceBear</span>
+        <span style="padding:2px 8px;background:#1e3a5f;border-radius:4px;font-size:0.75rem;color:#7dd3fc;">Boring Avatars</span>
+        <span style="padding:2px 8px;background:#1e3a5f;border-radius:4px;font-size:0.75rem;color:#7dd3fc;">Multiavatar</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Evoluir o pixel art atual</h3>
+      <p>Manter o SVG handcrafted mas melhorar: mais variações, animações idle, expressões, acessórios extras, ou refatorar o sistema de sprite para ser mais extensível.</p>
+      <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;">
+        <span style="padding:2px 8px;background:#1a3a1f;border-radius:4px;font-size:0.75rem;color:#86efac;">zero deps</span>
+        <span style="padding:2px 8px;background:#1a3a1f;border-radius:4px;font-size:0.75rem;color:#86efac;">controle total</span>
+        <span style="padding:2px 8px;background:#1a3a1f;border-radius:4px;font-size:0.75rem;color:#86efac;">identidade própria</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Híbrido: biblioteca + customização</h3>
+      <p>Usar DiceBear com o estilo <em>pixel-art</em> ou <em>adventurer</em>, mas integrado ao sistema de customização existente. Mantém UX rica com menor custo de manutenção do sprite.</p>
+      <div style="display:flex;gap:0.5rem;margin-top:0.75rem;flex-wrap:wrap;">
+        <span style="padding:2px 8px;background:#3a1f1a;border-radius:4px;font-size:0.75rem;color:#fca5a5;">adiciona dep</span>
+        <span style="padding:2px 8px;background:#3a1f1a;border-radius:4px;font-size:0.75rem;color:#fca5a5;">customização limitada</span>
+      </div>
+    </div>
+  </div>
+</div>

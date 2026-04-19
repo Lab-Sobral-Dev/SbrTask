@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(npm install *)",
+      "Bash(node -e \"const {createAvatar}=require\\('@dicebear/core'\\); const {pixelArt}=require\\('@dicebear/pixel-art'\\); const a=createAvatar\\(pixelArt,{}\\); console.log\\(a.toString\\(\\).slice\\(0,30\\)\\)\")",
+      "Bash(node -e \"const core = require\\('@dicebear/core'\\); const pixelArt = require\\('@dicebear/pixel-art'\\); console.log\\('Modules imported successfully'\\); console.log\\('Core:', typeof core\\); console.log\\('PixelArt:', typeof pixelArt\\);\")",
+      "Bash(npm ls *)",
+      "Bash(node --input-type=module -e \"import * as pixelArt from '@dicebear/pixel-art'; console.log\\(Object.keys\\(pixelArt\\)\\)\")",
+      "Bash(node --input-type=module -e \"import {createAvatar} from '@dicebear/core'; import * as pixelArt from '@dicebear/pixel-art'; const a = createAvatar\\(pixelArt, {}\\); console.log\\(a.toString\\(\\).slice\\(0,30\\)\\)\")",
+      "Bash(npx vitest *)",
+      "Bash(npm test *)",
+      "Bash(npx tsc *)",
+      "Bash(npm list *)",
+      "Bash(git *)",
+      "Bash(node -e \"const p=require\\('./node_modules/@dicebear/pixel-art/dist/index.cjs'\\); console.log\\(Object.keys\\(p\\)\\)\")",
+      "Bash(node -e \"const {create} = require\\('@dicebear/pixel-art'\\); const style = create\\({}\\); console.log\\(typeof style\\);\")",
+      "Bash(node -e \"const {createAvatar} = require\\('@dicebear/core'\\); const {create} = require\\('@dicebear/pixel-art'\\); console.log\\(createAvatar.length\\); console.log\\(typeof createAvatar\\);\")",
+      "Bash(node -e \"const {create,meta,schema}=require\\('@dicebear/pixel-art'\\); console.log\\(Object.keys\\({create,meta,schema}\\)\\)\")",
+      "Bash(npm run *)"
+    ]
+  }
+}
