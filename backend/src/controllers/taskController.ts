@@ -1,53 +1,76 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { AuthRequest } from '../middlewares/auth';
+import { getIo } from '../socket';
 
-interface TaskBody {
-  title: string;
-  description?: string;
-  priority?: string;
-  status?: string;
-  dueDate?: string;
-  category?: string;
-  xpReward?: number;
-}
-
-// Helper to get string id from params
-const getIdParam = (param: string | string[] | undefined): string => {
-  if (Array.isArray(param)) return param[0];
-  return param || '';
+const assignmentInclude = {
+  user: { select: { id: true, name: true, sector: true } },
 };
 
-//XP reward based on priority
-const getXPReward = (priority: string, baseXP: number = 10): number => {
-  switch (priority) {
-    case 'simple':
-      return baseXP;
-    case 'medium':
-      return 25;
-    case 'critical':
-      return 50;
-    default:
-      return baseXP;
+const taskInclude = {
+  creator: { select: { id: true, name: true } },
+  assignments: { include: assignmentInclude },
+};
+
+const sendNotification = async (
+  userId: string,
+  type: string,
+  message: string,
+  taskId: string,
+) => {
+  const notification = await prisma.notification.create({
+    data: { userId, type, message, taskId },
+  });
+  try {
+    getIo().to(`user-${userId}`).emit('notification', {
+      id: notification.id,
+      type,
+      message,
+      taskId,
+      createdAt: notification.createdAt,
+    });
+  } catch {
+    // Socket.io not yet initialised in test env — safe to ignore
   }
 };
 
 export const createTask = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest;
-    const { title, description, priority, dueDate, category, xpReward } = req.body as TaskBody;
+    const { title, description, priority, dueDate, category, xpReward, assigneeIds } =
+      req.body as {
+        title: string;
+        description?: string;
+        priority?: string;
+        dueDate?: string;
+        category?: string;
+        xpReward: number;
+        assigneeIds: string[];
+      };
+
+    if (!Array.isArray(assigneeIds) || assigneeIds.length === 0) {
+      return res.status(400).json({ error: 'assigneeIds deve ser um array não vazio' });
+    }
 
     const task = await prisma.task.create({
       data: {
         title,
         description,
-        priority: priority || 'medium',
+        priority: priority ?? 'medium',
         dueDate: dueDate ? new Date(dueDate) : null,
         category,
-        xpReward: xpReward || getXPReward(priority || 'medium'),
-        userId: authReq.userId!
-      }
+        xpReward,
+        createdBy: authReq.userId!,
+        assignments: {
+          create: assigneeIds.map((uid) => ({ userId: uid })),
+        },
+      },
+      include: taskInclude,
     });
+
+    for (const uid of assigneeIds) {
+      await sendNotification(uid, 'task_assigned', `Nova tarefa atribuída: ${title}`, task.id);
+    }
 
     res.status(201).json(task);
   } catch (error) {
@@ -61,37 +84,92 @@ export const getTasks = async (req: Request, res: Response) => {
     const authReq = req as AuthRequest;
     const { status, priority, category } = req.query;
 
-    const where: any = { userId: authReq.userId };
-    
-    if (status) where.status = status;
+    const user = await prisma.user.findUnique({ where: { id: authReq.userId! } });
+    const isAdmin = user?.role === 'admin';
+
+    const where: Record<string, unknown> = {};
+    if (status && status !== 'all') where.status = status;
     if (priority) where.priority = priority;
     if (category) where.category = category;
 
-    const tasks = await prisma.task.findMany({
+    if (!isAdmin) {
+      where.assignments = { some: { userId: authReq.userId! } };
+    }
+
+    const taskList = await prisma.task.findMany({
       where,
-      orderBy: { createdAt: 'desc' }
+      include: taskInclude,
+      orderBy: { createdAt: 'desc' },
     });
 
-    res.json(tasks);
+    res.json(taskList);
   } catch (error) {
     console.error('Erro ao buscar tarefas:', error);
     res.status(500).json({ error: 'Erro ao buscar tarefas' });
   }
 };
 
+export const getStats = async (req: Request, res: Response) => {
+  try {
+    const authReq = req as AuthRequest;
+
+    const assignments = await prisma.taskAssignment.findMany({
+      where: { userId: authReq.userId! },
+      include: { task: true },
+    });
+
+    const completedAssignments = assignments.filter((a) => a.status === 'completed');
+    const pendingAssignments = assignments.filter((a) => a.status === 'pending');
+    const inProgressAssignments = assignments.filter((a) => a.status === 'in_progress');
+
+    const byPriority = {
+      simple: completedAssignments.filter((a) => a.task.priority === 'simple').length,
+      medium: completedAssignments.filter((a) => a.task.priority === 'medium').length,
+      critical: completedAssignments.filter((a) => a.task.priority === 'critical').length,
+    };
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recentCompleted = completedAssignments.filter(
+      (a) => a.completedAt && new Date(a.completedAt) > sevenDaysAgo,
+    ).length;
+
+    const totalXPFromTasks = completedAssignments.reduce(
+      (acc, a) => acc + a.task.xpReward,
+      0,
+    );
+
+    res.json({
+      total: assignments.length,
+      completed: completedAssignments.length,
+      pending: pendingAssignments.length,
+      inProgress: inProgressAssignments.length,
+      byPriority,
+      recentCompleted,
+      totalXPFromTasks,
+    });
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas:', error);
+    res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+  }
+};
+
 export const getTaskById = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest;
-    const id = getIdParam(req.params.id);
+    const id = req.params.id as string;
+
+    const user = await prisma.user.findUnique({ where: { id: authReq.userId! } });
+    const isAdmin = user?.role === 'admin';
 
     const task = await prisma.task.findFirst({
-      where: { id, userId: authReq.userId }
+      where: isAdmin
+        ? { id }
+        : { id, assignments: { some: { userId: authReq.userId! } } },
+      include: taskInclude,
     });
 
-    if (!task) {
-      return res.status(404).json({ error: 'Tarefa não encontrada' });
-    }
-
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
     res.json(task);
   } catch (error) {
     console.error('Erro ao buscar tarefa:', error);
@@ -101,31 +179,31 @@ export const getTaskById = async (req: Request, res: Response) => {
 
 export const updateTask = async (req: Request, res: Response) => {
   try {
-    const authReq = req as AuthRequest;
-    const id = getIdParam(req.params.id);
-    const { title, description, priority, status, dueDate, category, xpReward } = req.body as TaskBody;
+    const id = req.params.id as string;
+    const { title, description, priority, dueDate, category, xpReward } = req.body;
 
-    // Verificar se a tarefa pertence ao usuário
-    const existingTask = await prisma.task.findFirst({
-      where: { id, userId: authReq.userId }
+    const existing = await prisma.task.findUnique({
+      where: { id },
+      include: { assignments: { select: { userId: true } } },
     });
-
-    if (!existingTask) {
-      return res.status(404).json({ error: 'Tarefa não encontrada' });
-    }
+    if (!existing) return res.status(404).json({ error: 'Tarefa não encontrada' });
 
     const task = await prisma.task.update({
       where: { id },
       data: {
-        ...(title && { title }),
-        ...(description && { description }),
-        ...(priority && { priority }),
-        ...(status && { status }),
-        ...(dueDate && { dueDate: new Date(dueDate) }),
-        ...(category && { category }),
-        ...(xpReward && { xpReward })
-      }
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(priority !== undefined && { priority }),
+        ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
+        ...(category !== undefined && { category }),
+        ...(xpReward !== undefined && { xpReward }),
+      },
+      include: taskInclude,
     });
+
+    for (const { userId } of existing.assignments) {
+      await sendNotification(userId, 'task_updated', `Tarefa atualizada: ${task.title}`, id);
+    }
 
     res.json(task);
   } catch (error) {
@@ -136,20 +214,12 @@ export const updateTask = async (req: Request, res: Response) => {
 
 export const deleteTask = async (req: Request, res: Response) => {
   try {
-    const authReq = req as AuthRequest;
-    const id = getIdParam(req.params.id);
+    const id = req.params.id as string;
 
-    // Verificar se a tarefa pertence ao usuário
-    const existingTask = await prisma.task.findFirst({
-      where: { id, userId: authReq.userId }
-    });
-
-    if (!existingTask) {
-      return res.status(404).json({ error: 'Tarefa não encontrada' });
-    }
+    const existing = await prisma.task.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ error: 'Tarefa não encontrada' });
 
     await prisma.task.delete({ where: { id } });
-
     res.json({ message: 'Tarefa deletada com sucesso' });
   } catch (error) {
     console.error('Erro ao deletar tarefa:', error);
@@ -157,137 +227,39 @@ export const deleteTask = async (req: Request, res: Response) => {
   }
 };
 
-export const completeTask = async (req: Request, res: Response) => {
+export const updateAssignment = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest;
-    const id = getIdParam(req.params.id);
+    const taskId = req.params.id as string;
+    const { status } = req.body as { status: string };
 
-    // Buscar tarefa
-    const task = await prisma.task.findFirst({
-      where: { id, userId: authReq.userId }
+    const validStatuses = ['pending', 'in_progress', 'completed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Status inválido' });
+    }
+
+    const assignment = await prisma.taskAssignment.findUnique({
+      where: { taskId_userId: { taskId, userId: authReq.userId! } },
     });
+    if (!assignment) return res.status(404).json({ error: 'Assignment não encontrado' });
 
-    if (!task) {
-      return res.status(404).json({ error: 'Tarefa não encontrada' });
-    }
-
-    if (task.status === 'completed') {
-      return res.status(400).json({ error: 'Tarefa já foi concluída' });
-    }
-
-    // Calcular bônus de XP
-    let xpEarned = task.xpReward;
-    
-    // Bônus por entrega antecipada
-    if (task.dueDate && new Date() < new Date(task.dueDate)) {
-      xpEarned += 10;
-    }
-    
-    // Penalidade por atraso (menor XP)
-    if (task.dueDate && new Date() > new Date(task.dueDate)) {
-      xpEarned = Math.floor(xpEarned * 0.5);
-    }
-
-    // Atualizar tarefa
-    const updatedTask = await prisma.task.update({
-      where: { id },
+    const updated = await prisma.taskAssignment.update({
+      where: { taskId_userId: { taskId, userId: authReq.userId! } },
       data: {
-        status: 'completed',
-        completedAt: new Date()
-      }
+        status,
+        ...(status === 'completed' && { completedAt: new Date() }),
+      },
     });
 
-    // Adicionar XP ao usuário
-    const user = await prisma.user.update({
-      where: { id: authReq.userId },
-      data: {
-        xp: { increment: xpEarned }
-      }
-    });
-
-    // Verificar se usuário subiu de nível
-    const newLevel = calculateLevel(user.xp);
-    let leveledUp = false;
-    
-    if (newLevel > user.level) {
-      await prisma.user.update({
-        where: { id: authReq.userId },
-        data: { level: newLevel }
-      });
-      leveledUp = true;
+    const allAssignments = await prisma.taskAssignment.findMany({ where: { taskId } });
+    const allDone = allAssignments.every((a) => a.status === 'completed');
+    if (allDone) {
+      await prisma.task.update({ where: { id: taskId }, data: { status: 'completed' } });
     }
 
-    res.json({
-      task: updatedTask,
-      xpEarned,
-      totalXP: user.xp,
-      level: leveledUp ? newLevel : user.level,
-      leveledUp
-    });
+    res.json({ assignment: updated, taskCompleted: allDone });
   } catch (error) {
-    console.error('Erro ao completar tarefa:', error);
-    res.status(500).json({ error: 'Erro ao completar tarefa' });
-  }
-};
-
-// Função para calcular nível
-const calculateLevel = (xp: number): number => {
-  let level = 1;
-  let totalXP = 0;
-  
-  while (true) {
-    const xpNeeded = Math.floor(100 * Math.pow(level, 1.5));
-    if (totalXP + xpNeeded > xp) {
-      break;
-    }
-    totalXP += xpNeeded;
-    level++;
-  }
-  
-  return level;
-};
-
-// Estatísticas do usuário
-export const getStats = async (req: Request, res: Response) => {
-  try {
-    const authReq = req as AuthRequest;
-
-    const tasks = await prisma.task.findMany({
-      where: { userId: authReq.userId }
-    });
-
-    const completedTasks = tasks.filter(t => t.status === 'completed');
-    const pendingTasks = tasks.filter(t => t.status === 'pending');
-    const inProgressTasks = tasks.filter(t => t.status === 'in_progress');
-
-    // Estatísticas por prioridade
-    const byPriority = {
-      simple: completedTasks.filter(t => t.priority === 'simple').length,
-      medium: completedTasks.filter(t => t.priority === 'medium').length,
-      critical: completedTasks.filter(t => t.priority === 'critical').length
-    };
-
-    // Tarefas concluídas nos últimos 7 dias
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const recentCompleted = completedTasks.filter(t => 
-      t.completedAt && new Date(t.completedAt) > sevenDaysAgo
-    ).length;
-
-    // XP total ganhos
-    const totalXPFromTasks = completedTasks.reduce((acc, t) => acc + t.xpReward, 0);
-
-    res.json({
-      total: tasks.length,
-      completed: completedTasks.length,
-      pending: pendingTasks.length,
-      inProgress: inProgressTasks.length,
-      byPriority,
-      recentCompleted,
-      totalXPFromTasks
-    });
-  } catch (error) {
-    console.error('Erro ao buscar estatísticas:', error);
-    res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+    console.error('Erro ao atualizar assignment:', error);
+    res.status(500).json({ error: 'Erro ao atualizar assignment' });
   }
 };

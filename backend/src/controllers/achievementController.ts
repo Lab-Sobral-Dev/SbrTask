@@ -97,12 +97,14 @@ export const checkAchievements = async (userId: string) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { tasks: { where: { status: 'completed' } } }
     });
 
     if (!user) return [];
 
-    const completedCount = user.tasks.length;
+    const completedAssignments = await prisma.taskAssignment.count({
+      where: { userId, status: 'completed' },
+    });
+    const completedCount = completedAssignments;
     
     // Buscar conquistas não alcançadas
     const achievements = await prisma.achievement.findMany();

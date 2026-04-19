@@ -153,6 +153,19 @@ const calculateLevel = (xp: number): number => {
   return level - 1;
 };
 
+export const getUsers = async (_req: Request, res: Response) => {
+  try {
+    const userList = await prisma.user.findMany({
+      select: { id: true, name: true, sector: true, role: true },
+      orderBy: { name: 'asc' },
+    });
+    res.json(userList);
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    res.status(500).json({ error: 'Erro ao buscar usuários' });
+  }
+};
+
 // XP necessário para o próximo nível
 export const getXPToNextLevel = async (req: Request, res: Response) => {
   try {
