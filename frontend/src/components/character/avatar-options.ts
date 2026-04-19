@@ -1,3 +1,5 @@
+import type { AvatarData } from '../../types';
+
 export const SKIN_COLORS: { id: string; hex: string }[] = [
   { id: 'light', hex: '#f8d5c2' },
   { id: 'mellow', hex: '#edc8a0' },
@@ -85,7 +87,7 @@ export const ACCESSORY_OPTIONS: { id: string; label: string }[] = [
   { id: 'variant06', label: 'Acessorio 6' },
 ];
 
-export const DEFAULT_AVATAR = {
+export const DEFAULT_AVATAR: AvatarData = {
   skinColor: 'warm',
   hair: 'short01',
   hairColor: 'brown',

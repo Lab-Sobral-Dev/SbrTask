@@ -11,16 +11,17 @@ export interface User {
 }
 
 export interface AvatarData {
-  skinTone: string;
-  hairStyle: string;
+  skinColor: string;
+  hair: string;
   hairColor: string;
-  facialHair: string;
-  eyes: {
-    color: string;
-    shape: string;
-  };
-  outfit: string;
+  eyes: string;
+  eyebrows: string;
+  mouth: string;
+  beard: string | null;
+  clothing: string;
+  clothingColor: string;
   accessories: string[];
+  backgroundColor: string;
 }
 
 export interface Task {
