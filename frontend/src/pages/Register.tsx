@@ -8,6 +8,7 @@ import type { AvatarData } from '../types';
 import { useAuthStore } from '../hooks/useAuthStore';
 import { auth } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
+import { DEFAULT_AVATAR } from '../components/character/avatar-options';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
@@ -54,19 +55,7 @@ const Register: React.FC = () => {
 
   const saveFormData = (data: RegisterForm) => {
     sessionStorage.setItem('registerData', JSON.stringify(data));
-    setAvatar({
-      skinColor: '#F2CDB1',
-      hair: 'hair-1',
-      hairColor: '#4A3728',
-      eyes: 'round',
-      eyebrows: 'default',
-      mouth: 'smile',
-      beard: null,
-      clothing: 'outfit-1',
-      clothingColor: '#1A1A1A',
-      accessories: [],
-      backgroundColor: '#E8E8E8',
-    });
+    setAvatar(DEFAULT_AVATAR);
     setStep('character');
   };
 

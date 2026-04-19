@@ -16,8 +16,10 @@ const pixelArtStyle = { meta, schema, create };
 
 export const Avatar: React.FC<AvatarProps> = ({ data, size = 'md', className }) => {
   const svg = useMemo(
-    () =>
-      createAvatar(pixelArtStyle, {
+    () => {
+      // DiceBear v9 expects strict union types per option (e.g. "short01" | "short02"),
+      // but AvatarData uses string for portability. Cast is safe — values come from avatar-options constants.
+      return createAvatar(pixelArtStyle, {
         skinColor: [data.skinColor],
         hair: [data.hair],
         hairColor: [data.hairColor],
@@ -31,7 +33,8 @@ export const Avatar: React.FC<AvatarProps> = ({ data, size = 'md', className }) 
         accessories: data.accessories.length ? data.accessories : [],
         accessoriesProbability: data.accessories.length ? 100 : 0,
         backgroundColor: [data.backgroundColor],
-      } as any).toString(),
+      } as any).toString();
+    },
     [data],
   );
 

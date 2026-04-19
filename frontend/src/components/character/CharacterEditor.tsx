@@ -26,6 +26,8 @@ interface CharacterEditorProps {
 
 const pixelArtStyle = { meta, schema, create };
 
+// DiceBear v9 expects strict union types per option (e.g. "short01" | "short02"),
+// but AvatarData uses string for portability. Cast is safe — values come from avatar-options constants.
 const buildOptions = (data: AvatarData) => ({
   skinColor: [data.skinColor],
   hair: [data.hair],
