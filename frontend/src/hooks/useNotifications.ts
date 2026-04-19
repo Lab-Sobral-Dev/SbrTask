@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { connectSocket, disconnectSocket } from '../services/socket';
 import { useAuthStore } from './useAuthStore';
-import { notifications as notificationsApi } from '../services/api';
+import { auth, notifications as notificationsApi } from '../services/api';
 
 export interface DbNotification {
   id: string;
@@ -30,8 +30,16 @@ export const useNotifications = () => {
     if (!user?.id) return;
 
     const socket = connectSocket(user.id);
+
     socket?.on('notification', () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    socket?.on('xp_update', async () => {
+      try {
+        const res = await auth.me();
+        useAuthStore.setState({ user: res.data.user });
+      } catch (_) {}
     });
 
     return () => {

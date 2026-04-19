@@ -325,6 +325,14 @@ export const approveAssignment = async (req: Request, res: Response) => {
       await prisma.user.update({ where: { id: targetUserId }, data: { level: newLevel } });
     }
 
+    // Empurrar XP/level atualizados para o frontend do usuário via socket
+    try {
+      getIo().to(`user-${targetUserId}`).emit('xp_update', {
+        xp: updatedUser.xp,
+        level: newLevel,
+      });
+    } catch (_) {}
+
     // Notificar usuário que foi aprovado
     await sendNotification(
       targetUserId,
