@@ -15,13 +15,16 @@ export interface AvatarData {
   hair: string;
   hairColor: string;
   eyes: string;
-  eyebrows: string;
   mouth: string;
   beard: string | null;
   clothing: string;
   clothingColor: string;
   accessories: string[];
   backgroundColor: string;
+  glasses: string | null;
+  glassesColor: string;
+  hat: string | null;
+  hatColor: string;
 }
 
 export interface Task {

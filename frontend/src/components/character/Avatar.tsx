@@ -19,12 +19,12 @@ export const Avatar: React.FC<AvatarProps> = ({ data, size = 'md', className }) 
     () => {
       // DiceBear v9 expects strict union types per option (e.g. "short01" | "short02"),
       // but AvatarData uses string for portability. Cast is safe — values come from avatar-options constants.
+      // Color options (skinColor, hairColor, etc.) expect hex without '#'; convertColor() adds '#' internally.
       return createAvatar(pixelArtStyle, {
         skinColor: [data.skinColor],
         hair: [data.hair],
         hairColor: [data.hairColor],
         eyes: [data.eyes],
-        eyebrows: [data.eyebrows],
         mouth: [data.mouth],
         beard: data.beard ? [data.beard] : [],
         beardProbability: data.beard ? 100 : 0,
@@ -33,6 +33,12 @@ export const Avatar: React.FC<AvatarProps> = ({ data, size = 'md', className }) 
         accessories: data.accessories.length ? data.accessories : [],
         accessoriesProbability: data.accessories.length ? 100 : 0,
         backgroundColor: [data.backgroundColor],
+        glasses: data.glasses ? [data.glasses] : [],
+        glassesProbability: data.glasses ? 100 : 0,
+        glassesColor: [data.glassesColor],
+        hat: data.hat ? [data.hat] : [],
+        hatProbability: data.hat ? 100 : 0,
+        hatColor: [data.hatColor],
       } as any).toString();
     },
     [data],

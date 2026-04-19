@@ -3,7 +3,6 @@ import { vi } from 'vitest';
 import CharacterEditor from './CharacterEditor';
 import { DEFAULT_AVATAR } from './avatar-options';
 
-// Mock dicebear modules (same as Avatar.test.tsx)
 vi.mock('@dicebear/core', () => ({
   createAvatar: vi.fn(() => ({
     toString: () => '<svg></svg>',
@@ -26,7 +25,7 @@ describe('CharacterEditor', () => {
 
   it('calls onComplete with initialData when provided and user confirms', () => {
     const onComplete = vi.fn();
-    const initial = { ...DEFAULT_AVATAR, skinColor: 'ebony' };
+    const initial = { ...DEFAULT_AVATAR, skinColor: '2c1a0e' };
     const { getByText } = render(<CharacterEditor initialData={initial} onComplete={onComplete} />);
     fireEvent.click(getByText('Confirmar personagem'));
     expect(onComplete).toHaveBeenCalledWith(initial);
@@ -47,9 +46,17 @@ describe('CharacterEditor', () => {
     expect(getByText('Cor do cabelo')).toBeTruthy();
   });
 
-  it('switches to Extras tab and shows Sem barba option', () => {
+  it('Rosto tab shows Oculos section (not Sobrancelhas)', () => {
+    const { getByText, queryByText } = render(<CharacterEditor onComplete={vi.fn()} />);
+    fireEvent.click(getByText('Rosto'));
+    expect(getByText('Oculos')).toBeTruthy();
+    expect(queryByText('Sobrancelhas')).toBeNull();
+  });
+
+  it('Extras tab shows Sem barba and Sem chapeu options', () => {
     const { getByText } = render(<CharacterEditor onComplete={vi.fn()} />);
     fireEvent.click(getByText('Extras'));
     expect(getByText('Sem barba')).toBeTruthy();
+    expect(getByText('Sem chapeu')).toBeTruthy();
   });
 });

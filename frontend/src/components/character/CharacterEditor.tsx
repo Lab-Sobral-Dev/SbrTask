@@ -10,12 +10,14 @@ import {
   HAIR_COLORS,
   HAIR_STYLES,
   EYE_VARIANTS,
-  EYEBROW_VARIANTS,
   MOUTH_VARIANTS,
   CLOTHING_VARIANTS,
   CLOTHING_COLORS,
   BEARD_VARIANTS,
   ACCESSORY_OPTIONS,
+  GLASSES_VARIANTS,
+  GLASSES_COLORS,
+  HAT_VARIANTS,
   DEFAULT_AVATAR,
 } from './avatar-options';
 
@@ -28,12 +30,12 @@ const pixelArtStyle = { meta, schema, create };
 
 // DiceBear v9 expects strict union types per option (e.g. "short01" | "short02"),
 // but AvatarData uses string for portability. Cast is safe — values come from avatar-options constants.
+// Color options expect hex without '#'; DiceBear's convertColor() adds '#' internally.
 const buildOptions = (data: AvatarData) => ({
   skinColor: [data.skinColor],
   hair: [data.hair],
   hairColor: [data.hairColor],
   eyes: [data.eyes],
-  eyebrows: [data.eyebrows],
   mouth: [data.mouth],
   beard: data.beard ? [data.beard] : [],
   beardProbability: data.beard ? 100 : 0,
@@ -42,6 +44,12 @@ const buildOptions = (data: AvatarData) => ({
   accessories: data.accessories.length ? data.accessories : [],
   accessoriesProbability: data.accessories.length ? 100 : 0,
   backgroundColor: [data.backgroundColor],
+  glasses: data.glasses ? [data.glasses] : [],
+  glassesProbability: data.glasses ? 100 : 0,
+  glassesColor: [data.glassesColor],
+  hat: data.hat ? [data.hat] : [],
+  hatProbability: data.hat ? 100 : 0,
+  hatColor: [data.hatColor],
 } as any);
 
 const MiniAvatar = ({
@@ -207,23 +215,8 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComple
                 </div>
               </div>
               <div>
-                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Sobrancelhas</h3>
-                <div className="mt-4 flex max-h-[120px] flex-wrap gap-2 overflow-y-auto">
-                  {EYEBROW_VARIANTS.map((v) => (
-                    <MiniAvatar
-                      key={v}
-                      base={avatar}
-                      overrides={{ eyebrows: [v] }}
-                      isSelected={avatar.eyebrows === v}
-                      onSelect={() => update({ eyebrows: v })}
-                      label={v}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div>
                 <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Boca</h3>
-                <div className="mt-4 flex flex-wrap gap-2">
+                <div className="mt-4 flex max-h-[120px] flex-wrap gap-2 overflow-y-auto">
                   {MOUTH_VARIANTS.map((v) => (
                     <MiniAvatar
                       key={v}
@@ -234,6 +227,40 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComple
                       label={v}
                     />
                   ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Oculos</h3>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => update({ glasses: null })}
+                    className={choiceClass(avatar.glasses === null)}
+                  >
+                    Sem oculos
+                  </button>
+                  {GLASSES_VARIANTS.map((v) => (
+                    <MiniAvatar
+                      key={v}
+                      base={avatar}
+                      overrides={{ glasses: [v], glassesProbability: 100, glassesColor: [avatar.glassesColor] }}
+                      isSelected={avatar.glasses === v}
+                      onSelect={() => update({ glasses: v })}
+                      label={v}
+                    />
+                  ))}
+                </div>
+                <div className="mt-4">
+                  <h3 className="tf-title text-base text-[color:var(--tf-text-main)]">Cor dos oculos</h3>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {GLASSES_COLORS.map(({ id, hex }) => (
+                      <button
+                        key={id}
+                        onClick={() => update({ glassesColor: id })}
+                        className={swatchClass(avatar.glassesColor === id)}
+                        style={{ backgroundColor: hex }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -297,6 +324,40 @@ const CharacterEditor: React.FC<CharacterEditorProps> = ({ initialData, onComple
                       />
                     ),
                   )}
+                </div>
+              </div>
+              <div>
+                <h3 className="tf-title text-lg text-[color:var(--tf-text-main)]">Chapeu</h3>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => update({ hat: null })}
+                    className={choiceClass(avatar.hat === null)}
+                  >
+                    Sem chapeu
+                  </button>
+                  {HAT_VARIANTS.map((v) => (
+                    <MiniAvatar
+                      key={v}
+                      base={avatar}
+                      overrides={{ hat: [v], hatProbability: 100, hatColor: [avatar.hatColor] }}
+                      isSelected={avatar.hat === v}
+                      onSelect={() => update({ hat: v })}
+                      label={v}
+                    />
+                  ))}
+                </div>
+                <div className="mt-4">
+                  <h3 className="tf-title text-base text-[color:var(--tf-text-main)]">Cor do chapeu</h3>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    {CLOTHING_COLORS.map(({ id, hex }) => (
+                      <button
+                        key={id}
+                        onClick={() => update({ hatColor: id })}
+                        className={swatchClass(avatar.hatColor === id)}
+                        style={{ backgroundColor: hex }}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
               <div>

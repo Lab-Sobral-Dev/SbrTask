@@ -25,29 +25,27 @@ export const HAIR_COLORS: { id: string; hex: string }[] = [
   { id: 'a0a0a0', hex: '#a0a0a0' },
 ];
 
+// short01–short24 + long01–long21 = 45 estilos válidos no DiceBear pixel-art
 export const HAIR_STYLES: string[] = [
-  ...Array.from({ length: 19 }, (_, i) => `short${String(i + 1).padStart(2, '0')}`),
-  ...Array.from({ length: 26 }, (_, i) => `long${String(i + 1).padStart(2, '0')}`),
+  ...Array.from({ length: 24 }, (_, i) => `short${String(i + 1).padStart(2, '0')}`),
+  ...Array.from({ length: 21 }, (_, i) => `long${String(i + 1).padStart(2, '0')}`),
 ];
 
+// DiceBear pixel-art tem variant01–variant12 para olhos
 export const EYE_VARIANTS: string[] = Array.from(
-  { length: 26 },
+  { length: 12 },
   (_, i) => `variant${String(i + 1).padStart(2, '0')}`,
 );
 
-export const EYEBROW_VARIANTS: string[] = Array.from(
-  { length: 14 },
-  (_, i) => `variant${String(i + 1).padStart(2, '0')}`,
-);
-
+// DiceBear pixel-art tem happy01–happy13 e sad01–sad10
 export const MOUTH_VARIANTS: string[] = [
-  'happy01', 'happy02', 'happy03', 'happy04', 'happy05', 'happy06',
-  'sad01', 'sad02',
-  'surprised01', 'surprised02',
+  ...Array.from({ length: 13 }, (_, i) => `happy${String(i + 1).padStart(2, '0')}`),
+  ...Array.from({ length: 10 }, (_, i) => `sad${String(i + 1).padStart(2, '0')}`),
 ];
 
+// DiceBear pixel-art tem variant01–variant23 para roupas
 export const CLOTHING_VARIANTS: string[] = Array.from(
-  { length: 20 },
+  { length: 23 },
   (_, i) => `variant${String(i + 1).padStart(2, '0')}`,
 );
 
@@ -68,35 +66,59 @@ export const CLOTHING_COLORS: { id: string; hex: string }[] = [
   { id: 'ffffff', hex: '#ffffff' },
 ];
 
+// DiceBear pixel-art tem variant01–variant08 para barba
 export const BEARD_VARIANTS: { id: string | null; label: string }[] = [
   { id: null, label: 'Sem barba' },
-  ...Array.from({ length: 5 }, (_, i) => ({
+  ...Array.from({ length: 8 }, (_, i) => ({
     id: `variant${String(i + 1).padStart(2, '0')}`,
     label: `Barba ${i + 1}`,
   })),
 ];
 
+// DiceBear pixel-art tem variant01–variant04 para accessories
 export const ACCESSORY_OPTIONS: { id: string; label: string }[] = [
-  { id: 'glasses', label: 'Oculos' },
-  { id: 'sunglasses', label: 'Oculos escuros' },
-  { id: 'variant01', label: 'Acessorio 1' },
-  { id: 'variant02', label: 'Acessorio 2' },
-  { id: 'variant03', label: 'Acessorio 3' },
-  { id: 'variant04', label: 'Acessorio 4' },
-  { id: 'variant05', label: 'Acessorio 5' },
-  { id: 'variant06', label: 'Acessorio 6' },
+  { id: 'variant01', label: 'Acessório 1' },
+  { id: 'variant02', label: 'Acessório 2' },
+  { id: 'variant03', label: 'Acessório 3' },
+  { id: 'variant04', label: 'Acessório 4' },
 ];
+
+// DiceBear pixel-art: light01–light07 (armações claras) e dark01–dark07 (escuras)
+export const GLASSES_VARIANTS: string[] = [
+  ...Array.from({ length: 7 }, (_, i) => `light${String(i + 1).padStart(2, '0')}`),
+  ...Array.from({ length: 7 }, (_, i) => `dark${String(i + 1).padStart(2, '0')}`),
+];
+
+export const GLASSES_COLORS: { id: string; hex: string }[] = [
+  { id: 'a0a0a0', hex: '#a0a0a0' },
+  { id: 'ffd700', hex: '#ffd700' },
+  { id: 'b87333', hex: '#b87333' },
+  { id: '252525', hex: '#252525' },
+  { id: 'f5f5f5', hex: '#f5f5f5' },
+  { id: '5199e4', hex: '#5199e4' },
+  { id: 'ff5c5c', hex: '#ff5c5c' },
+  { id: 'ca9849', hex: '#ca9849' },
+];
+
+// DiceBear pixel-art tem variant01–variant10 para chapéus
+export const HAT_VARIANTS: string[] = Array.from(
+  { length: 10 },
+  (_, i) => `variant${String(i + 1).padStart(2, '0')}`,
+);
 
 export const DEFAULT_AVATAR: AvatarData = {
   skinColor: 'd9b28a',
   hair: 'short01',
   hairColor: '4e2b16',
   eyes: 'variant01',
-  eyebrows: 'variant01',
   mouth: 'happy01',
   beard: null,
   clothing: 'variant01',
   clothingColor: '65c9f0',
   accessories: [],
   backgroundColor: '1e293b',
+  glasses: null,
+  glassesColor: 'a0a0a0',
+  hat: null,
+  hatColor: '252525',
 };
