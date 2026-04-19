@@ -6,7 +6,7 @@ import { useAuthStore } from '../hooks/useAuthStore';
 import { Avatar } from '../components/character/Avatar';
 import { xpLevelProgress } from '../lib/xp';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowUp, Calendar, CheckCircle, Clock, ExternalLink, Target, TrendingUp, Trophy, Zap } from 'lucide-react';
+import { ArrowUp, Calendar, CheckCircle, Clock, Target, TrendingUp, Trophy, Zap } from 'lucide-react';
 
 const chartTheme = {
   axis: '#9aa6b2',
@@ -199,29 +199,37 @@ const Dashboard: React.FC = () => {
             <CheckCircle className="h-5 w-5 text-[color:var(--tf-success)]" />
             Distribuicao de tarefas
           </h3>
-          <div className="mt-4 h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={statusData} cx="50%" cy="50%" innerRadius={58} outerRadius={82} paddingAngle={4} dataKey="value">
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={renderTooltip}
-                  contentStyle={{ backgroundColor: chartTheme.tooltipBg, border: `2px solid ${chartTheme.tooltipBorder}`, borderRadius: '4px', color: chartTheme.text }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-4 flex flex-wrap justify-center gap-3">
-            {statusData.map((entry) => (
-              <div key={entry.name} className="tf-panel-inset flex items-center gap-2 px-3 py-2 text-sm text-[color:var(--tf-text-muted)]">
-                <span className="h-3 w-3 rounded-[2px]" style={{ backgroundColor: entry.color }} />
-                {entry.name}
+          {taskList.length === 0 ? (
+            <div className="mt-4 flex h-64 items-center justify-center text-[color:var(--tf-text-muted)]">
+              Nenhuma tarefa para exibir
+            </div>
+          ) : (
+            <>
+              <div className="mt-4 h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusData} cx="50%" cy="50%" innerRadius={58} outerRadius={82} paddingAngle={4} dataKey="value">
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={renderTooltip}
+                      contentStyle={{ backgroundColor: chartTheme.tooltipBg, border: `2px solid ${chartTheme.tooltipBorder}`, borderRadius: '4px', color: chartTheme.text }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
-          </div>
+              <div className="mt-4 flex flex-wrap justify-center gap-3">
+                {statusData.map((entry) => (
+                  <div key={entry.name} className="tf-panel-inset flex items-center gap-2 px-3 py-2 text-sm text-[color:var(--tf-text-muted)]">
+                    <span className="h-3 w-3 rounded-[2px]" style={{ backgroundColor: entry.color }} />
+                    {entry.name}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </section>
 
         <section className="tf-panel p-5">
@@ -229,20 +237,30 @@ const Dashboard: React.FC = () => {
             <Target className="h-5 w-5 text-[color:var(--tf-danger)]" />
             Tarefas por prioridade
           </h3>
-          <div className="mt-4 h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={priorityData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
-                <XAxis dataKey="name" stroke={chartTheme.axis} />
-                <YAxis stroke={chartTheme.axis} />
-                <Tooltip
-                  formatter={renderTooltip}
-                  contentStyle={{ backgroundColor: chartTheme.tooltipBg, border: `2px solid ${chartTheme.tooltipBorder}`, borderRadius: '4px', color: chartTheme.text }}
-                />
-                <Bar dataKey="value" fill="#d98c3f" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {!stats ? (
+            <div className="mt-4 flex h-64 items-center justify-center text-[color:var(--tf-text-muted)]">
+              Carregando...
+            </div>
+          ) : priorityData.every((d) => d.value === 0) ? (
+            <div className="mt-4 flex h-64 items-center justify-center text-[color:var(--tf-text-muted)]">
+              Nenhuma tarefa para exibir
+            </div>
+          ) : (
+            <div className="mt-4 h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={priorityData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
+                  <XAxis dataKey="name" stroke={chartTheme.axis} />
+                  <YAxis stroke={chartTheme.axis} />
+                  <Tooltip
+                    formatter={renderTooltip}
+                    contentStyle={{ backgroundColor: chartTheme.tooltipBg, border: `2px solid ${chartTheme.tooltipBorder}`, borderRadius: '4px', color: chartTheme.text }}
+                  />
+                  <Bar dataKey="value" fill="#d98c3f" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </section>
 
         <section className="tf-panel p-5">
