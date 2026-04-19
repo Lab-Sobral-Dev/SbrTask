@@ -238,6 +238,8 @@ const calculateLevel = (xp: number): number => {
   return level - 1;
 };
 
+// PATCH /tasks/:id/assignment — usuário atualiza seu próprio progresso
+// 'completed' pelo usuário move para 'pending_review'; XP só é creditado pelo admin
 export const updateAssignment = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest;
@@ -245,9 +247,9 @@ export const updateAssignment = async (req: Request, res: Response) => {
     const taskId = req.params.id as string;
     const { status } = req.body as { status: string };
 
-    const validStatuses = ['pending', 'in_progress', 'completed'];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ error: 'Status inválido' });
+    const userAllowedStatuses = ['pending', 'in_progress', 'pending_review'];
+    if (!userAllowedStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Status inválido. Use pending, in_progress ou pending_review' });
     }
 
     const assignment = await prisma.taskAssignment.findUnique({
@@ -255,54 +257,90 @@ export const updateAssignment = async (req: Request, res: Response) => {
     });
     if (!assignment) return res.status(404).json({ error: 'Assignment não encontrado' });
 
-    // Impede re-completar um assignment já concluído
-    if (assignment.status === 'completed' && status === 'completed') {
-      return res.status(400).json({ error: 'Assignment já foi concluído' });
+    if (assignment.status === 'completed') {
+      return res.status(400).json({ error: 'Assignment já foi aprovado pelo admin' });
     }
 
     const updated = await prisma.taskAssignment.update({
       where: { taskId_userId: { taskId, userId } },
-      data: {
-        status,
-        ...(status === 'completed' && { completedAt: new Date() }),
-      },
+      data: { status },
     });
 
-    // Fix 4: Creditar XP e recalcular nível ao concluir
-    if (status === 'completed') {
+    // Notificar o criador da tarefa (admin) que o usuário sinalizou conclusão
+    if (status === 'pending_review') {
       const task = await prisma.task.findUnique({ where: { id: taskId } });
+      const requester = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
       if (task) {
-        const updatedUser = await prisma.user.update({
-          where: { id: userId },
-          data: { xp: { increment: task.xpReward } },
-        });
-        const newLevel = calculateLevel(updatedUser.xp);
-        if (newLevel !== updatedUser.level) {
-          await prisma.user.update({ where: { id: userId }, data: { level: newLevel } });
-        }
-
-        // Fix 3: Notificar o admin (criador da tarefa) sobre a conclusão do assignment
-        const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
         await sendNotification(
           task.createdBy,
-          'assignment_completed',
-          `${user?.name ?? 'Usuário'} concluiu a tarefa: ${task.title}`,
+          'pending_review',
+          `${requester?.name ?? 'Usuário'} concluiu "${task.title}" — aguardando aprovação`,
           taskId,
         );
-
-        await checkAchievements(userId);
       }
     }
 
+    res.json({ assignment: updated });
+  } catch (error) {
+    console.error('Erro ao atualizar assignment:', error);
+    res.status(500).json({ error: 'Erro ao atualizar assignment' });
+  }
+};
+
+// PATCH /tasks/:id/assignment/:userId/approve — admin aprova e credita XP
+export const approveAssignment = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id as string;
+    const targetUserId = req.params.userId as string;
+
+    const assignment = await prisma.taskAssignment.findUnique({
+      where: { taskId_userId: { taskId, userId: targetUserId } },
+    });
+    if (!assignment) return res.status(404).json({ error: 'Assignment não encontrado' });
+
+    if (assignment.status !== 'pending_review') {
+      return res.status(400).json({ error: 'Assignment não está pendente de revisão' });
+    }
+
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+
+    // Marcar assignment como concluído
+    const updated = await prisma.taskAssignment.update({
+      where: { taskId_userId: { taskId, userId: targetUserId } },
+      data: { status: 'completed', completedAt: new Date() },
+    });
+
+    // Creditar XP ao usuário aprovado
+    const updatedUser = await prisma.user.update({
+      where: { id: targetUserId },
+      data: { xp: { increment: task.xpReward } },
+    });
+    const newLevel = calculateLevel(updatedUser.xp);
+    if (newLevel !== updatedUser.level) {
+      await prisma.user.update({ where: { id: targetUserId }, data: { level: newLevel } });
+    }
+
+    // Notificar usuário que foi aprovado
+    await sendNotification(
+      targetUserId,
+      'assignment_approved',
+      `Sua conclusão de "${task.title}" foi aprovada! +${task.xpReward} XP`,
+      taskId,
+    );
+
+    await checkAchievements(targetUserId);
+
+    // Se todos os assignments estiverem concluídos, fechar a task
     const allAssignments = await prisma.taskAssignment.findMany({ where: { taskId } });
     const allDone = allAssignments.every((a) => a.status === 'completed');
     if (allDone) {
       await prisma.task.update({ where: { id: taskId }, data: { status: 'completed' } });
     }
 
-    res.json({ assignment: updated, taskCompleted: allDone });
+    res.json({ assignment: updated, taskCompleted: allDone, xpAwarded: task.xpReward });
   } catch (error) {
-    console.error('Erro ao atualizar assignment:', error);
-    res.status(500).json({ error: 'Erro ao atualizar assignment' });
+    console.error('Erro ao aprovar assignment:', error);
+    res.status(500).json({ error: 'Erro ao aprovar assignment' });
   }
 };

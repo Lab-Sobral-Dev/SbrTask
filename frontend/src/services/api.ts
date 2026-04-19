@@ -72,6 +72,9 @@ export const tasks = {
   updateAssignment: (taskId: string, status: string) =>
     api.patch(`/tasks/${taskId}/assignment`, { status }),
 
+  approveAssignment: (taskId: string, userId: string) =>
+    api.patch(`/tasks/${taskId}/assignment/${userId}/approve`),
+
   getStats: () => api.get('/tasks/stats'),
 };
 

@@ -6,6 +6,7 @@ import {
   updateTask,
   deleteTask,
   updateAssignment,
+  approveAssignment,
   getStats,
 } from '../controllers/taskController';
 import { authMiddleware } from '../middlewares/auth';
@@ -22,5 +23,6 @@ router.get('/:id', getTaskById);
 router.put('/:id', adminMiddleware, updateTask);
 router.delete('/:id', adminMiddleware, deleteTask);
 router.patch('/:id/assignment', updateAssignment);
+router.patch('/:id/assignment/:userId/approve', adminMiddleware, approveAssignment);
 
 export default router;

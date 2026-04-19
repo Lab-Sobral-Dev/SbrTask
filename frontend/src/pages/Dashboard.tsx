@@ -42,9 +42,22 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const taskList = tasksData?.data || [];
-  const pendingTasks = taskList.filter((t: any) => t.status === 'pending');
-  const completedTasks = taskList.filter((t: any) => t.status === 'completed');
-  const inProgressTasks = taskList.filter((t: any) => t.status === 'in_progress');
+
+  // Para usuários: filtrar pelo status do próprio assignment; para admin: pelo status da task
+  const myAssignmentStatus = (t: any): string => {
+    const mine = t.assignments?.find((a: any) => a.userId === user?.id);
+    return mine?.status ?? t.status;
+  };
+
+  const pendingTasks = taskList.filter((t: any) => {
+    const s = myAssignmentStatus(t);
+    return s === 'pending' || s === 'active';
+  });
+  const completedTasks = taskList.filter((t: any) => myAssignmentStatus(t) === 'completed');
+  const inProgressTasks = taskList.filter((t: any) => {
+    const s = myAssignmentStatus(t);
+    return s === 'in_progress' || s === 'pending_review';
+  });
 
   const achievementsList = achievementsData?.data || [];
   const achievedCount = achievementsList.filter((a: any) => a.achieved).length;
