@@ -7,21 +7,15 @@ const API_URL =
 
 const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Interceptor para adicionar token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Interceptor para tratar erros
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -30,65 +24,68 @@ api.interceptors.response.use(
       window.location.href = '/login';
     }
     return Promise.reject(error);
-  }
+  },
 );
 
-// Auth
 export const auth = {
-  register: (data: {
-    email: string;
-    password: string;
-    name: string;
-    sector: string;
-    avatar?: object;
-  }) => api.post('/auth/register', data),
-  
-  login: (email: string, password: string) => 
-    api.post('/auth/login', { email, password }),
-  
+  register: (data: { email: string; password: string; name: string; sector: string; avatar?: object }) =>
+    api.post('/auth/register', data),
+  login: (email: string, password: string) => api.post('/auth/login', { email, password }),
   me: () => api.get('/auth/me'),
-  
   getXPProgress: () => api.get('/auth/xp'),
 };
 
-// Tasks
+export const users = {
+  getAll: () => api.get<{ id: string; name: string; sector: string; role: string }[]>('/auth/users'),
+};
+
 export const tasks = {
-  getAll: (params?: { status?: string; priority?: string; category?: string }) => 
+  getAll: (params?: { status?: string; priority?: string; category?: string }) =>
     api.get('/tasks', { params }),
-  
+
   getById: (id: string) => api.get(`/tasks/${id}`),
-  
+
   create: (data: {
     title: string;
     description?: string;
     priority?: string;
     dueDate?: string;
     category?: string;
-    xpReward?: number;
-  }) => api.post('/tasks', data),
-  
-  update: (id: string, data: Partial<{
-    title: string;
-    description: string;
-    priority: string;
-    status: string;
-    dueDate: string;
-    category: string;
     xpReward: number;
-  }>) => api.put(`/tasks/${id}`, data),
-  
+    assigneeIds: string[];
+  }) => api.post('/tasks', data),
+
+  update: (
+    id: string,
+    data: Partial<{
+      title: string;
+      description: string;
+      priority: string;
+      dueDate: string;
+      category: string;
+      xpReward: number;
+    }>,
+  ) => api.put(`/tasks/${id}`, data),
+
   delete: (id: string) => api.delete(`/tasks/${id}`),
-  
-  complete: (id: string) => api.post(`/tasks/${id}/complete`),
-  
+
+  updateAssignment: (taskId: string, status: string) =>
+    api.patch(`/tasks/${taskId}/assignment`, { status }),
+
   getStats: () => api.get('/tasks/stats'),
 };
 
-// Achievements
+export const notifications = {
+  getAll: () =>
+    api.get<
+      { id: string; type: string; message: string; read: boolean; taskId?: string; createdAt: string }[]
+    >('/notifications'),
+  markAllRead: () => api.patch('/notifications/read-all'),
+};
+
 export const achievements = {
   getAll: () => api.get('/achievements'),
-  
-  getLeaderboard: (sector?: string) => 
+  getLeaderboard: (sector?: string) =>
     api.get('/achievements/leaderboard', { params: { sector } }),
 };
 

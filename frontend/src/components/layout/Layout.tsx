@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Avatar } from '../../components/character/Avatar';
 import { useAuthStore } from '../../hooks/useAuthStore';
+import NotificationDropdown from '../notifications/NotificationDropdown';
 import {
-  Bell,
   ChevronDown,
   ChevronUp,
   Crown,
@@ -157,10 +157,7 @@ const Layout: React.FC = () => {
         <header className="flex h-16 items-center justify-between border-b-2 border-[color:var(--tf-border-soft)] bg-[rgba(17,22,29,0.68)] px-4 backdrop-blur-sm lg:px-8">
           <div className="w-10 lg:hidden" />
           <div className="flex items-center gap-4">
-            <button className="tf-btn tf-btn-ghost relative !p-2 hover:text-[color:var(--tf-text-main)]">
-              <Bell className="h-5 w-5" />
-              <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-[color:var(--tf-primary)]" />
-            </button>
+            <NotificationDropdown />
           </div>
         </header>
 

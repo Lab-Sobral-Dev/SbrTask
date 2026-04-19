@@ -1,47 +1,50 @@
-import { useEffect, useState, useCallback } from 'react';
-import { connectSocket, disconnectSocket, getSocket } from '../services/socket';
-import { useAuthStore } from '../hooks/useAuthStore';
+import { useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { connectSocket, disconnectSocket } from '../services/socket';
+import { useAuthStore } from './useAuthStore';
+import { notifications as notificationsApi } from '../services/api';
 
-interface Notification {
+export interface DbNotification {
   id: string;
   type: string;
   message: string;
-  timestamp: Date;
+  read: boolean;
+  taskId?: string;
+  createdAt: string;
 }
 
 export const useNotifications = () => {
   const { user } = useAuthStore();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => notificationsApi.getAll().then((r) => r.data),
+    enabled: !!user?.id,
+  });
+
+  const notificationList: DbNotification[] = data ?? [];
+  const unreadCount = notificationList.filter((n) => !n.read).length;
 
   useEffect(() => {
     if (!user?.id) return;
 
     const socket = connectSocket(user.id);
-
-    socket?.on('notification', (data: { type: string; message: string }) => {
-      const newNotification: Notification = {
-        id: Date.now().toString(),
-        type: data.type,
-        message: data.message,
-        timestamp: new Date(),
-      };
-      setNotifications((prev) => [newNotification, ...prev].slice(0, 50));
+    socket?.on('notification', () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
     });
 
     return () => {
       disconnectSocket();
     };
-  }, [user?.id]);
+  }, [user?.id, queryClient]);
 
-  const clearNotifications = useCallback(() => {
-    setNotifications([]);
-  }, []);
+  const markAllRead = async () => {
+    await notificationsApi.markAllRead();
+    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  };
 
-  const removeNotification = useCallback((id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  }, []);
-
-  return { notifications, clearNotifications, removeNotification };
+  return { notifications: notificationList, unreadCount, isLoading, markAllRead };
 };
 
 export default useNotifications;
