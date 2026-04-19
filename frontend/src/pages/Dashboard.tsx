@@ -82,9 +82,9 @@ const Dashboard: React.FC = () => {
       <section className="tf-panel p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
           <div className="flex items-center gap-5">
-            <div className="tf-frame h-24 w-24 overflow-hidden p-2">
+            <div className="tf-frame flex h-24 w-24 items-center justify-center overflow-hidden">
               <div className="tf-panel-inset flex h-full w-full items-center justify-center">
-                {user && <Avatar data={user.avatar} size="lg" />}
+                {user && <Avatar data={user.avatar} size="md" />}
               </div>
             </div>
             <div>

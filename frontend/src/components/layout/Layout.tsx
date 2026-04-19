@@ -154,7 +154,7 @@ const Layout: React.FC = () => {
       )}
 
       <main className="min-h-screen flex-1 lg:ml-0">
-        <header className="flex h-16 items-center justify-between border-b-2 border-[color:var(--tf-border-soft)] bg-[rgba(17,22,29,0.68)] px-4 backdrop-blur-sm lg:px-8">
+        <header className="relative z-50 flex h-16 items-center justify-between border-b-2 border-[color:var(--tf-border-soft)] bg-[rgba(17,22,29,0.68)] px-4 backdrop-blur-sm lg:px-8">
           <div className="w-10 lg:hidden" />
           <div className="flex items-center gap-4">
             <NotificationDropdown />
