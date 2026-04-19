@@ -8,55 +8,82 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  sector    String
-  role      String   @default("user")
-  level     Int      @default(1)
-  xp        Int      @default(0)
-  avatar    Json?    @default("{\"skinColor\":\"warm\",\"hair\":\"short01\",\"hairColor\":\"brown\",\"eyes\":\"variant01\",\"eyebrows\":\"variant01\",\"mouth\":\"happy01\",\"beard\":null,\"clothing\":\"variant01\",\"clothingColor\":\"blue01\",\"accessories\":[],\"backgroundColor\":\"1e293b\"}")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tasks     Task[]
+  id           String            @id @default(uuid())
+  email        String            @unique
+  password     String
+  name         String
+  sector       String
+  role         String            @default("user")
+  level        Int               @default(1)
+  xp           Int               @default(0)
+  avatar       Json?             @default("{\"skinColor\":\"d9b28a\",\"hair\":\"short01\",\"hairColor\":\"4e2b16\",\"eyes\":\"variant01\",\"mouth\":\"happy01\",\"beard\":null,\"clothing\":\"variant01\",\"clothingColor\":\"65c9f0\",\"accessories\":[],\"backgroundColor\":\"1e293b\",\"glasses\":null,\"glassesColor\":\"a0a0a0\",\"hat\":null,\"hatColor\":\"252525\"}")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  createdTasks Task[]            @relation("TaskCreator")
+  assignments  TaskAssignment[]
+  notifications Notification[]
   achievements UserAchievement[]
 }
 
 model Task {
-  id          String   @id @default(uuid())
+  id          String           @id @default(uuid())
   title       String
   description String?
-  priority    String   @default("medium") // simple, medium, critical
-  status      String   @default("pending") // pending, in_progress, completed
+  priority    String           @default("medium")
+  status      String           @default("active")
   dueDate     DateTime?
   category    String?
-  xpReward    Int      @default(10)
-  completedAt DateTime?
+  xpReward    Int              @default(10)
+  createdBy   String
+  creator     User             @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  assignments TaskAssignment[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model TaskAssignment {
+  id          String    @id @default(uuid())
+  taskId      String
   userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  status      String    @default("pending")
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  task        Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  message   String
+  read      Boolean  @default(false)
+  taskId    String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Achievement {
-  id          String   @id @default(uuid())
+  id          String            @id @default(uuid())
   name        String
   description String
   icon        String
-  requirement Int      // Quantidade necessária para desbloquear
-  type        String   // daily, weekly, milestone
-  xpReward    Int      @default(0)
+  requirement Int
+  type        String
+  xpReward    Int               @default(0)
   users       UserAchievement[]
 }
 
 model UserAchievement {
-  id             String      @id @default(uuid())
-  userId         String
-  achievementId  String
-  achievedAt     DateTime    @default(now())
-  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement    Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  id            String      @id @default(uuid())
+  userId        String
+  achievementId String
+  achievedAt    DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
 }
