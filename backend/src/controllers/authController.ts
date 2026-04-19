@@ -181,15 +181,15 @@ export const getXPToNextLevel = async (req: Request, res: Response) => {
 
     const currentLevel = user.level;
     const currentXP = user.xp;
-    
-    // Calcular XP para próximo nível
-    let xpForCurrentLevel = 0;
-    for (let i = 1; i < currentLevel; i++) {
-      xpForCurrentLevel += Math.floor(100 * Math.pow(i, 1.5));
-    }
-    
-    const xpForNextLevel = Math.floor(100 * Math.pow(currentLevel, 1.5));
-    const xpProgress = currentXP - xpForCurrentLevel;
+
+    const xpForLvl = (lvl: number) => Math.floor(100 * Math.pow(lvl, 1.5));
+
+    // Cumulative XP to reach currentLevel
+    let xpBase = 0;
+    for (let i = 1; i < currentLevel; i++) xpBase += xpForLvl(i);
+
+    const xpForNextLevel = xpForLvl(currentLevel);
+    const xpProgress = currentXP - xpBase;
 
     res.json({
       currentLevel,

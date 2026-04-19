@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { Avatar } from '../../components/character/Avatar';
 import { useAuthStore } from '../../hooks/useAuthStore';
 import NotificationDropdown from '../notifications/NotificationDropdown';
+import { xpLevelProgress } from '../../lib/xp';
 import {
   ChevronDown,
   ChevronUp,
@@ -11,7 +12,6 @@ import {
   ListTodo,
   LogOut,
   Menu,
-  Settings,
   Trophy,
   Users,
   X,
@@ -92,25 +92,23 @@ const Layout: React.FC = () => {
                 )}
               </button>
 
-              {showXP && (
-                <div className="mt-2">
-                  <div className="mb-1 flex justify-between text-xs text-[color:var(--tf-text-dim)]">
-                    <span>XP: {user.xp}</span>
-                    <span>Proximo: {user.level * 100}</span>
+              {showXP && (() => {
+                const xpInfo = xpLevelProgress(user.xp, user.level);
+                return (
+                  <div className="mt-2">
+                    <div className="mb-1 flex justify-between text-xs text-[color:var(--tf-text-dim)]">
+                      <span>{xpInfo.progress} XP</span>
+                      <span>Próximo: {xpInfo.needed} XP</span>
+                    </div>
+                    <div className="tf-progress h-3 w-full">
+                      <div
+                        className="tf-progress-bar transition-all"
+                        style={{ width: `${xpInfo.pct}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="tf-progress h-3 w-full">
-                    <div
-                      className="tf-progress-bar transition-all"
-                      style={{
-                        width: `${Math.min(
-                          ((user.xp % (user.level * 100)) / (user.level * 100)) * 100,
-                          100,
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
 
@@ -134,10 +132,6 @@ const Layout: React.FC = () => {
           </nav>
 
           <div className="space-y-2 border-t-2 border-[color:var(--tf-border-soft)] p-4">
-            <button className="tf-sidebar-link w-full">
-              <Settings className="h-5 w-5" />
-              Configuracoes
-            </button>
             <button
               onClick={handleLogout}
               className="tf-sidebar-link w-full text-[color:var(--tf-danger)] hover:bg-[rgba(216,91,83,0.12)] hover:text-[color:var(--tf-text-main)]"

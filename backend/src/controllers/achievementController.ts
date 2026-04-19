@@ -92,6 +92,52 @@ export const getLeaderboard = async (req: Request, res: Response) => {
   }
 };
 
+export const createAchievement = async (req: Request, res: Response) => {
+  try {
+    const { name, description, icon, requirement, type, xpReward } = req.body;
+    const achievement = await prisma.achievement.create({
+      data: { name, description, icon, requirement: Number(requirement), type, xpReward: Number(xpReward ?? 0) },
+    });
+    res.status(201).json(achievement);
+  } catch (error) {
+    console.error('Erro ao criar conquista:', error);
+    res.status(500).json({ error: 'Erro ao criar conquista' });
+  }
+};
+
+export const updateAchievement = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { name, description, icon, requirement, type, xpReward } = req.body;
+    const achievement = await prisma.achievement.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(icon !== undefined && { icon }),
+        ...(requirement !== undefined && { requirement: Number(requirement) }),
+        ...(type !== undefined && { type }),
+        ...(xpReward !== undefined && { xpReward: Number(xpReward) }),
+      },
+    });
+    res.json(achievement);
+  } catch (error) {
+    console.error('Erro ao atualizar conquista:', error);
+    res.status(500).json({ error: 'Erro ao atualizar conquista' });
+  }
+};
+
+export const deleteAchievement = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.achievement.delete({ where: { id } });
+    res.json({ message: 'Conquista removida' });
+  } catch (error) {
+    console.error('Erro ao deletar conquista:', error);
+    res.status(500).json({ error: 'Erro ao deletar conquista' });
+  }
+};
+
 // Verificar e atribuir conquistas após completar tarefa
 export const checkAchievements = async (userId: string) => {
   try {

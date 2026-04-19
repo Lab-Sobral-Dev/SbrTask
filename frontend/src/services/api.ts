@@ -90,6 +90,26 @@ export const achievements = {
   getAll: () => api.get('/achievements'),
   getLeaderboard: (sector?: string) =>
     api.get('/achievements/leaderboard', { params: { sector } }),
+  create: (data: {
+    name: string;
+    description: string;
+    icon: string;
+    requirement: number;
+    type: string;
+    xpReward: number;
+  }) => api.post('/achievements', data),
+  update: (
+    id: string,
+    data: Partial<{
+      name: string;
+      description: string;
+      icon: string;
+      requirement: number;
+      type: string;
+      xpReward: number;
+    }>,
+  ) => api.put(`/achievements/${id}`, data),
+  delete: (id: string) => api.delete(`/achievements/${id}`),
 };
 
 export default api;

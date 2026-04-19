@@ -228,14 +228,18 @@ export const deleteTask = async (req: Request, res: Response) => {
   }
 };
 
+// XP needed to go from level N to N+1: floor(100 * N^1.5)
+// Cumulative XP to reach level N: sum of xpForLevel(1..N-1)
+const xpForLevel = (level: number): number => Math.floor(100 * Math.pow(level, 1.5));
+
 const calculateLevel = (xp: number): number => {
   let level = 1;
-  let xpNeeded = 0;
-  while (xpNeeded <= xp) {
+  let cumulative = 0;
+  while (cumulative + xpForLevel(level) <= xp) {
+    cumulative += xpForLevel(level);
     level++;
-    xpNeeded += Math.floor(100 * Math.pow(level, 1.5));
   }
-  return level - 1;
+  return level;
 };
 
 // PATCH /tasks/:id/assignment — usuário atualiza seu próprio progresso

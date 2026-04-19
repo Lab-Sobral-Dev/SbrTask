@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { achievements, tasks } from '../services/api';
 import { useAuthStore } from '../hooks/useAuthStore';
 import { Avatar } from '../components/character/Avatar';
+import { xpLevelProgress } from '../lib/xp';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowUp, Calendar, CheckCircle, Clock, Target, TrendingUp, Trophy, Zap } from 'lucide-react';
+import { ArrowUp, Calendar, CheckCircle, Clock, ExternalLink, Target, TrendingUp, Trophy, Zap } from 'lucide-react';
 
 const chartTheme = {
   axis: '#9aa6b2',
@@ -86,7 +88,7 @@ const Dashboard: React.FC = () => {
     { day: 'Dom', xp: 20 },
   ];
 
-  const xpProgress = user ? (((user.xp % (user.level * 100)) / (user.level * 100)) * 100) : 0;
+  const xpInfo = user ? xpLevelProgress(user.xp, user.level) : { progress: 0, needed: 100, pct: 0 };
 
   const renderTooltip = (value: any, name: any) => [value, name];
 
@@ -132,10 +134,12 @@ const Dashboard: React.FC = () => {
         <div className="mt-6">
           <div className="mb-2 flex justify-between text-sm">
             <span className="text-[color:var(--tf-text-muted)]">Progresso para o proximo nivel</span>
-            <span className="font-semibold text-[color:var(--tf-primary)]">{Math.round(xpProgress)}%</span>
+            <span className="font-semibold text-[color:var(--tf-primary)]">
+              {xpInfo.progress}/{xpInfo.needed} XP ({Math.round(xpInfo.pct)}%)
+            </span>
           </div>
           <div className="tf-progress h-4 w-full">
-            <div className="tf-progress-bar transition-all duration-500" style={{ width: `${xpProgress}%` }} />
+            <div className="tf-progress-bar transition-all duration-500" style={{ width: `${xpInfo.pct}%` }} />
           </div>
         </div>
       </section>
@@ -264,7 +268,10 @@ const Dashboard: React.FC = () => {
       </div>
 
       <section className="tf-panel p-5">
-        <h3 className="tf-title text-xl text-[color:var(--tf-text-main)]">Tarefas recentes</h3>
+        <div className="flex items-center justify-between">
+          <h3 className="tf-title text-xl text-[color:var(--tf-text-main)]">Tarefas recentes</h3>
+          <Link to="/tasks" className="text-sm font-semibold text-[color:var(--tf-primary)] hover:underline">Ver tudo</Link>
+        </div>
         <div className="mt-4 space-y-3">
           {taskList.slice(0, 5).map((task: any) => (
             <div key={task.id} className="tf-panel-inset flex flex-col gap-3 p-3 md:flex-row md:items-center md:justify-between">
