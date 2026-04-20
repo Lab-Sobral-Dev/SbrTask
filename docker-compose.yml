@@ -27,7 +27,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       CORS_ORIGIN: ${CORS_ORIGIN:-https://sbrtask.laboratoriosobral.com}
     ports:
-      - "3001:3001"
+      - "127.0.0.1:3004:3001"
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,7 +44,7 @@ services:
         VITE_API_URL: ${VITE_API_URL:-https://sbrtask.laboratoriosobral.com/api}
     restart: unless-stopped
     ports:
-      - "8080:80"
+      - "127.0.0.1:8084:80"
     networks:
       - sbrtask_net
 
