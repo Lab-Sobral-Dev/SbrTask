@@ -1,0 +1,5 @@
+# Force LF for shell scripts (they break with CRLF on Linux)
+*.sh text eol=lf
+
+# Dockerfiles use LF
+Dockerfile text eol=lf
