@@ -88,8 +88,8 @@ export const notifications = {
 
 export const achievements = {
   getAll: () => api.get('/achievements'),
-  getLeaderboard: (sector?: string) =>
-    api.get('/achievements/leaderboard', { params: { sector } }),
+  getLeaderboard: (sector?: string, period?: string) =>
+    api.get('/achievements/leaderboard', { params: { sector, period } }),
   create: (data: {
     name: string;
     description: string;

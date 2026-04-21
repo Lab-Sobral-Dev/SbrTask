@@ -38,4 +38,28 @@ export const disconnectSocket = () => {
 
 export const getSocket = () => socket;
 
+let _publicSocket: Socket | null = null;
+
+export const connectPublicSocket = (): Socket => {
+  if (_publicSocket?.connected) return _publicSocket;
+
+  const SOCKET_URL = API_URL.replace('/api', '');
+  _publicSocket = io(SOCKET_URL, {
+    transports: ['websocket', 'polling'],
+  });
+
+  _publicSocket.on('connect', () => {
+    _publicSocket?.emit('join-ranking');
+  });
+
+  return _publicSocket;
+};
+
+export const disconnectPublicSocket = (): void => {
+  if (_publicSocket) {
+    _publicSocket.disconnect();
+    _publicSocket = null;
+  }
+};
+
 export default socket;
