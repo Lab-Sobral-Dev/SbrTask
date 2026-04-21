@@ -4,6 +4,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes rankSlideIn {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.rank-flash {
+  animation: rankFlash 1.2s ease forwards !important;
+}
+
+@keyframes rankFlash {
+  0%   { background: rgba(217, 164, 65, 0.18); border-color: var(--tf-border-accent); }
+  100% { background: var(--tf-panel); border-color: var(--tf-border); }
+}
+
 @layer base {
   :root {
     --tf-bg-base: #11161d;
