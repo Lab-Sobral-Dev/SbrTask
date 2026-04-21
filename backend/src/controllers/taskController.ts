@@ -333,6 +333,17 @@ export const approveAssignment = async (req: Request, res: Response) => {
       });
     } catch (_) {}
 
+    // Broadcast ranking atualizado para a sala pública
+    try {
+      const topUsers = await prisma.user.findMany({
+        select: { id: true, name: true, sector: true, level: true, xp: true, avatar: true },
+        orderBy: { xp: 'desc' },
+        take: 20,
+      });
+      const rankingPayload = topUsers.map((u, i) => ({ rank: i + 1, ...u }));
+      getIo().to('ranking-public').emit('ranking_update', rankingPayload);
+    } catch (_) {}
+
     // Notificar usuário que foi aprovado
     await sendNotification(
       targetUserId,

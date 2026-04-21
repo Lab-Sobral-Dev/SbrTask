@@ -34,6 +34,10 @@ io.on('connection', (socket) => {
   socket.on('join-user-room', (userId: string) => {
     socket.join(`user-${userId}`);
   });
+
+  socket.on('join-ranking', () => {
+    socket.join('ranking-public');
+  });
 });
 
 httpServer.listen(config.port, () => {
