@@ -60,30 +60,63 @@ export const getAchievements = async (req: Request, res: Response) => {
 
 export const getLeaderboard = async (req: Request, res: Response) => {
   try {
-    const { sector } = req.query;
+    const { sector, period } = req.query;
 
-    const where: any = {};
-    if (sector) where.sector = sector as string;
+    // Para period=all (ou ausente), usa XP total acumulado
+    if (!period || period === 'all') {
+      const where: any = {};
+      if (sector) where.sector = sector as string;
 
-    const users = await prisma.user.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        sector: true,
-        level: true,
-        xp: true,
-        avatar: true
+      const users = await prisma.user.findMany({
+        where,
+        select: { id: true, name: true, sector: true, level: true, xp: true, avatar: true },
+        orderBy: { xp: 'desc' },
+        take: 20,
+      });
+
+      return res.json(users.map((u, i) => ({ rank: i + 1, ...u })));
+    }
+
+    // Para períodos específicos: soma XP ganho de tarefas concluídas no intervalo
+    const now = new Date();
+    let periodStart: Date;
+    if (period === 'today') {
+      periodStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (period === 'week') {
+      periodStart = new Date(now);
+      periodStart.setDate(now.getDate() - 7);
+    } else if (period === 'month') {
+      periodStart = new Date(now);
+      periodStart.setDate(now.getDate() - 30);
+    } else {
+      return res.status(400).json({ error: 'period inválido. Use: today, week, month, all' });
+    }
+
+    const assignments = await prisma.taskAssignment.findMany({
+      where: {
+        status: 'completed',
+        completedAt: { gte: periodStart },
+        ...(sector ? { user: { sector: sector as string } } : {}),
       },
-      orderBy: { xp: 'desc' },
-      take: 20
+      include: {
+        task: { select: { xpReward: true } },
+        user: { select: { id: true, name: true, sector: true, level: true, avatar: true } },
+      },
     });
 
-    // Adicionar ranking
-    const leaderboard = users.map((user, index) => ({
-      rank: index + 1,
-      ...user
-    }));
+    // Agregar XP por usuário
+    const xpByUser = new Map<string, { xp: number; user: typeof assignments[0]['user'] }>();
+    for (const a of assignments) {
+      if (!xpByUser.has(a.userId)) {
+        xpByUser.set(a.userId, { xp: 0, user: a.user });
+      }
+      xpByUser.get(a.userId)!.xp += a.task.xpReward;
+    }
+
+    const leaderboard = Array.from(xpByUser.values())
+      .sort((a, b) => b.xp - a.xp)
+      .slice(0, 20)
+      .map(({ xp, user }, index) => ({ rank: index + 1, ...user, xp }));
 
     res.json(leaderboard);
   } catch (error) {
