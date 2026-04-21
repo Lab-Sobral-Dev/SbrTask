@@ -7,37 +7,42 @@ interface Props {
   top3: LeaderboardEntry[];
 }
 
-const podiumOrder = [1, 0, 2]; // visual: 2nd | 1st | 3rd
+// visual order: left=2nd, center=1st, right=3rd
+const podiumOrder = [1, 0, 2];
 
+// indexed by playerIdx (0=1st place, 1=2nd place, 2=3rd place)
 const configs = [
   {
-    label: '2',
-    baseHeight: 'h-14',
-    avatarSize: 'h-16 w-16',
-    borderColor: 'border-[#6d7988]',
-    shadowClass: 'shadow-[0_0_14px_rgba(185,194,207,0.3)]',
-    icon: <Medal className="h-5 w-5 text-[#b9c2cf]" />,
-    glowClass: '',
-    bgGradient: 'linear-gradient(180deg,rgba(185,194,207,0.1),transparent)',
-  },
-  {
-    label: '1',
+    // 1st place
     baseHeight: 'h-20',
-    avatarSize: 'h-20 w-20',
+    frameSize: 'h-20 w-20',
+    avatarSize: 'md' as const,
     borderColor: 'border-[color:var(--tf-border-accent)]',
     shadowClass: 'shadow-[0_0_24px_rgba(217,164,65,0.5)]',
-    icon: <Crown className="h-6 w-6 text-[color:var(--tf-primary)]" />,
     glowClass: 'animate-pulse',
+    icon: <Crown className="h-6 w-6 text-[color:var(--tf-primary)]" />,
     bgGradient: 'linear-gradient(180deg,rgba(217,164,65,0.18),transparent)',
   },
   {
-    label: '3',
+    // 2nd place
+    baseHeight: 'h-14',
+    frameSize: 'h-16 w-16',
+    avatarSize: 'sm' as const,
+    borderColor: 'border-[#6d7988]',
+    shadowClass: 'shadow-[0_0_14px_rgba(185,194,207,0.3)]',
+    glowClass: '',
+    icon: <Medal className="h-5 w-5 text-[#b9c2cf]" />,
+    bgGradient: 'linear-gradient(180deg,rgba(185,194,207,0.1),transparent)',
+  },
+  {
+    // 3rd place
     baseHeight: 'h-10',
-    avatarSize: 'h-14 w-14',
+    frameSize: 'h-14 w-14',
+    avatarSize: 'sm' as const,
     borderColor: 'border-[#8f5d34]',
     shadowClass: 'shadow-[0_0_10px_rgba(200,135,75,0.3)]',
-    icon: <Award className="h-5 w-5 text-[#c8874b]" />,
     glowClass: '',
+    icon: <Award className="h-5 w-5 text-[#c8874b]" />,
     bgGradient: 'linear-gradient(180deg,rgba(200,135,75,0.1),transparent)',
   },
 ];
@@ -57,10 +62,11 @@ const PublicRankingPodium: React.FC<Props> = ({ top3 }) => {
               <Crown className="h-6 w-6 text-[color:var(--tf-primary)] animate-bounce" />
             )}
 
+            {/* Avatar frame — tf-frame sem rounded para não cortar o pixel-art */}
             <div
-              className={`tf-frame overflow-hidden rounded-full ${cfg.avatarSize} border-2 ${cfg.borderColor} ${cfg.shadowClass} ${cfg.glowClass}`}
+              className={`tf-frame ${cfg.frameSize} overflow-hidden flex items-center justify-center border-2 ${cfg.borderColor} ${cfg.shadowClass} ${cfg.glowClass}`}
             >
-              <Avatar data={player.avatar} size="sm" />
+              <Avatar data={player.avatar} size={cfg.avatarSize} />
             </div>
 
             <div className="text-center">

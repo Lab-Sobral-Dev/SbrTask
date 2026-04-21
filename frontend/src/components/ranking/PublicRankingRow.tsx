@@ -40,7 +40,7 @@ const PublicRankingRow: React.FC<Props> = ({ player, delta, highlighted, animati
         #{player.rank}
       </div>
 
-      <div className="tf-frame h-11 w-11 overflow-hidden rounded-full flex-shrink-0">
+      <div className="tf-frame h-11 w-11 overflow-hidden flex-shrink-0 flex items-center justify-center">
         <Avatar data={player.avatar} size="sm" />
       </div>
 
