@@ -36,17 +36,17 @@ const Login: React.FC = () => {
       {/* ── Painel esquerdo — foto + decoração ── */}
       <div className="relative hidden md:block w-1/2 overflow-hidden">
         <img
-          src="/foto.svg"
+          src="/bg-espiral.png"
           alt=""
           className="absolute inset-0 w-full h-full object-cover object-center"
         />
 
-        {/* Overlay gradiente */}
+        {/* Overlay — deixa a espiral respirar, escurece só embaixo para legibilidade */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'linear-gradient(145deg, rgba(192,57,43,0.82) 0%, rgba(231,99,39,0.68) 35%, rgba(120,30,20,0.75) 70%, rgba(15,23,42,0.88) 100%)',
+              'linear-gradient(160deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.22) 40%, rgba(15,23,42,0.52) 70%, rgba(15,23,42,0.82) 100%)',
           }}
         />
 
