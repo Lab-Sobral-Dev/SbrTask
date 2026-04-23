@@ -1,205 +1,118 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/prisma';
 import config from '../config';
+import { ldapBindUser, ldapSearchUser } from '../services/ldap';
 import { AuthRequest } from '../middlewares/auth';
-
-interface RegisterBody {
-  email: string;
-  password: string;
-  name: string;
-  sector: string;
-  avatar?: object;
-}
-
-interface LoginBody {
-  email: string;
-  password: string;
-}
-
-export const register = async (req: Request, res: Response) => {
-  try {
-    const { email, password, name, sector, avatar } = req.body as RegisterBody;
-
-    // Verificar se usuário já existe
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email já cadastrado' });
-    }
-
-    // Hash da senha
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Criar usuário
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        sector,
-        avatar: avatar || {
-          skinTone: '#F5D0B5',
-          hairStyle: 'hair-1',
-          hairColor: '#4A3728',
-          eyes: { color: '#4B7B4B', shape: 'round' },
-          outfit: 'outfit-1',
-          accessories: []
-        }
-      }
-    });
-
-    // Gerar token
-    const token = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '7d' });
-
-    res.status(201).json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        sector: user.sector,
-        role: user.role,
-        level: user.level,
-        xp: user.xp,
-        avatar: user.avatar
-      },
-      token
-    });
-  } catch (error) {
-    console.error('Erro no registro:', error);
-    res.status(500).json({ error: 'Erro ao criar usuário' });
-  }
-};
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body as LoginBody;
+    const { username, password } = req.body as { username: string; password: string };
 
-    // Buscar usuário
-    const user = await prisma.user.findUnique({ where: { email } });
+    // 1. Validate credentials via LDAP bind
+    const isValid = await ldapBindUser(username, password);
+    if (!isValid) {
+      return res.status(401).json({ error: 'Usuário ou senha inválidos' });
+    }
+
+    // 2. Fetch user attributes from AD
+    const adUser = await ldapSearchUser(username);
+    if (!adUser) {
+      return res.status(401).json({ error: 'Usuário não encontrado no diretório' });
+    }
+
+    const email = adUser.mail || null;
+
+    // 3. Upsert user in DB
+    let user = await prisma.user.findUnique({ where: { adUsername: adUser.sAMAccountName } });
+
     if (!user) {
-      return res.status(401).json({ error: 'Email ou senha inválidos' });
+      user = await prisma.user.create({
+        data: {
+          adUsername:  adUser.sAMAccountName,
+          email,
+          name:        adUser.displayName,
+          department:  adUser.departmentSlug,
+        },
+      });
+    } else {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data:  { name: adUser.displayName, email, lastLoginAt: new Date() },
+      });
     }
 
-    // Verificar senha
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(401).json({ error: 'Email ou senha inválidos' });
+    if (!user.active) {
+      return res.status(403).json({ error: 'Conta desativada. Contate o TI.' });
     }
 
-    // Gerar token
-    const token = jwt.sign({ userId: user.id }, config.jwtSecret, { expiresIn: '7d' });
+    // 4. Remote access check
+    const clientIp = req.ip ?? '';
+    const isCompanyNetwork =
+      config.companyIps.length === 0 || config.companyIps.includes(clientIp);
 
-    res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        sector: user.sector,
-        role: user.role,
-        level: user.level,
-        xp: user.xp,
-        avatar: user.avatar
+    if (!isCompanyNetwork) {
+      const isTI = user.department === 'ti';
+      if (!isTI && !user.allowRemoteAccess) {
+        return res.status(403).json({
+          error: 'Acesso externo não autorizado. Utilize a rede da empresa.',
+        });
+      }
+    }
+
+    // 5. Issue JWT (8h — shift duration)
+    const token = jwt.sign(
+      {
+        sub:        user.id,
+        name:       user.name,
+        email:      user.email,
+        department: user.department ?? 'unknown',
+        role:       user.role,
       },
-      token
+      config.jwtSecret,
+      { expiresIn: '8h' }
+    );
+
+    return res.json({
+      token,
+      user: {
+        id:         user.id,
+        name:       user.name,
+        email:      user.email,
+        department: user.department,
+        role:       user.role,
+      },
     });
   } catch (error) {
     console.error('Erro no login:', error);
-    res.status(500).json({ error: 'Erro ao fazer login' });
+    return res.status(500).json({ error: 'Erro ao autenticar' });
   }
 };
 
 export const getMe = async (req: Request, res: Response) => {
   try {
-    const authReq = req as AuthRequest & { userId: string };
-    
+    const authReq = req as AuthRequest;
     const user = await prisma.user.findUnique({
-      where: { id: authReq.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        sector: true,
-        role: true,
-        level: true,
-        xp: true,
-        avatar: true,
-        createdAt: true
-      }
+      where:  { id: authReq.userId! },
+      select: { id: true, name: true, email: true, department: true, role: true, createdAt: true },
     });
-
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado' });
-    }
-
-    res.json(user);
+    if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+    return res.json(user);
   } catch (error) {
     console.error('Erro ao buscar usuário:', error);
-    res.status(500).json({ error: 'Erro ao buscar dados do usuário' });
+    return res.status(500).json({ error: 'Erro ao buscar dados do usuário' });
   }
-};
-
-// Função para calcular nível baseado no XP
-const calculateLevel = (xp: number): number => {
-  // Fórmula: XP necessária = 100 * nível ^ 1.5
-  let level = 1;
-  let xpNeeded = 0;
-  
-  while (xpNeeded <= xp) {
-    level++;
-    xpNeeded += Math.floor(100 * Math.pow(level, 1.5));
-  }
-  
-  return level - 1;
 };
 
 export const getUsers = async (_req: Request, res: Response) => {
   try {
     const userList = await prisma.user.findMany({
-      select: { id: true, name: true, sector: true, role: true },
+      select: { id: true, name: true, department: true, role: true },
       orderBy: { name: 'asc' },
     });
-    res.json(userList);
+    return res.json(userList);
   } catch (error) {
     console.error('Erro ao buscar usuários:', error);
-    res.status(500).json({ error: 'Erro ao buscar usuários' });
-  }
-};
-
-// XP necessário para o próximo nível
-export const getXPToNextLevel = async (req: Request, res: Response) => {
-  try {
-    const authReq = req as AuthRequest & { userId: string };
-    
-    const user = await prisma.user.findUnique({
-      where: { id: authReq.userId }
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado' });
-    }
-
-    const currentLevel = user.level;
-    const currentXP = user.xp;
-
-    const xpForLvl = (lvl: number) => Math.floor(100 * Math.pow(lvl, 1.5));
-
-    // Cumulative XP to reach currentLevel
-    let xpBase = 0;
-    for (let i = 1; i < currentLevel; i++) xpBase += xpForLvl(i);
-
-    const xpForNextLevel = xpForLvl(currentLevel);
-    const xpProgress = currentXP - xpBase;
-
-    res.json({
-      currentLevel,
-      currentXP,
-      xpForNextLevel,
-      xpProgress,
-      xpNeeded: xpForNextLevel - xpProgress
-    });
-  } catch (error) {
-    console.error('Erro ao calcular XP:', error);
-    res.status(500).json({ error: 'Erro ao calcular XP' });
+    return res.status(500).json({ error: 'Erro ao buscar usuários' });
   }
 };
