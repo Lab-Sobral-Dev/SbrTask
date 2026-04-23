@@ -34,13 +34,14 @@ const Login: React.FC = () => {
     <div className="flex h-screen overflow-hidden font-ubuntu">
 
       {/* ── Painel esquerdo — foto + decoração ── */}
-      <div className="relative hidden md:block w-1/2 overflow-hidden">
-        <img
-          src="/bg-espiral.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover object-center"
-        />
-
+      <div
+        className="relative hidden md:block w-1/2 overflow-hidden"
+        style={{
+          backgroundImage: 'url(/bg-espiral.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
         {/* Overlay — deixa a espiral respirar, escurece só embaixo para legibilidade */}
         <div
           className="absolute inset-0 pointer-events-none"

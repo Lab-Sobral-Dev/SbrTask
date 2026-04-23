@@ -26,6 +26,12 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-sbrtask}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sbrtask}
       JWT_SECRET: ${JWT_SECRET}
       CORS_ORIGIN: ${CORS_ORIGIN:-https://sbrtask.laboratoriosobral.com}
+      LDAP_URL: ${LDAP_URL:-ldap://192.86.221.218:389}
+      LDAP_DOMAIN: ${LDAP_DOMAIN:-labsobralnet.ind}
+      LDAP_BASE_DN: ${LDAP_BASE_DN:-DC=labsobralnet,DC=ind}
+      LDAP_SERVICE_DN: ${LDAP_SERVICE_DN}
+      LDAP_SERVICE_PASS: ${LDAP_SERVICE_PASS}
+      COMPANY_IPS: ${COMPANY_IPS:-}
     ports:
       - "127.0.0.1:3004:3001"
     depends_on:
