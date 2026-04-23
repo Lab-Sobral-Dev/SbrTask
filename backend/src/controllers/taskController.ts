@@ -5,7 +5,7 @@ import { getIo } from '../socket';
 import { checkAchievements } from './achievementController';
 
 const assignmentInclude = {
-  user: { select: { id: true, name: true, sector: true } },
+  user: { select: { id: true, name: true, department: true } },
 };
 
 const taskInclude = {
@@ -315,32 +315,37 @@ export const approveAssignment = async (req: Request, res: Response) => {
       data: { status: 'completed', completedAt: new Date() },
     });
 
-    // Creditar XP ao usuário aprovado
-    const updatedUser = await prisma.user.update({
-      where: { id: targetUserId },
-      data: { xp: { increment: task.xpReward } },
+    // Creditar XP via UserGameProfile
+    await prisma.userGameProfile.upsert({
+      where: { userId: targetUserId },
+      update: { xp: { increment: task.xpReward } },
+      create: { userId: targetUserId, xp: task.xpReward, level: 1 },
     });
-    const newLevel = calculateLevel(updatedUser.xp);
-    if (newLevel !== updatedUser.level) {
-      await prisma.user.update({ where: { id: targetUserId }, data: { level: newLevel } });
+    const profile = await prisma.userGameProfile.findUnique({ where: { userId: targetUserId } });
+    if (profile) {
+      const newLevel = calculateLevel(profile.xp);
+      if (newLevel !== profile.level) {
+        await prisma.userGameProfile.update({ where: { userId: targetUserId }, data: { level: newLevel } });
+      }
+      try {
+        getIo().to(`user-${targetUserId}`).emit('xp_update', { xp: profile.xp, level: newLevel });
+      } catch (_) {}
     }
-
-    // Empurrar XP/level atualizados para o frontend do usuário via socket
-    try {
-      getIo().to(`user-${targetUserId}`).emit('xp_update', {
-        xp: updatedUser.xp,
-        level: newLevel,
-      });
-    } catch (_) {}
 
     // Broadcast ranking atualizado para a sala pública
     try {
-      const topUsers = await prisma.user.findMany({
-        select: { id: true, name: true, sector: true, level: true, xp: true, avatar: true },
+      const topProfiles = await prisma.userGameProfile.findMany({
+        include: { user: { select: { id: true, name: true, department: true } } },
         orderBy: { xp: 'desc' },
         take: 20,
       });
-      const rankingPayload = topUsers.map((u, i) => ({ rank: i + 1, ...u }));
+      const rankingPayload = topProfiles.map((p, i) => ({
+        rank: i + 1,
+        id: p.user.id,
+        name: p.user.name,
+        department: p.user.department,
+        xp: p.xp,
+      }));
       getIo().to('ranking-public').emit('ranking_update', rankingPayload);
     } catch (_) {}
 
