@@ -1,15 +1,28 @@
 import { Router } from 'express';
-import { register, login, getMe, getXPToNextLevel, getUsers } from '../controllers/authController';
+import { z } from 'zod';
+import { login, getMe, getUsers } from '../controllers/authController';
 import { authMiddleware } from '../middlewares/auth';
 import { adminMiddleware } from '../middlewares/admin';
 
 const router = Router();
 
-router.post('/register', register);
-router.post('/login', login);
+const loginSchema = z.object({
+  username: z.string().min(1).max(100),
+  password: z.string().min(1).max(200),
+});
+
+router.post('/login', async (req, res) => {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Dados inválidos' });
+  req.body = parsed.data;
+  return login(req, res);
+});
 
 router.get('/me', authMiddleware, getMe);
-router.get('/xp', authMiddleware, getXPToNextLevel);
 router.get('/users', authMiddleware, adminMiddleware, getUsers);
+
+router.post('/logout', authMiddleware, (_req, res) => {
+  return res.json({ message: 'Logout realizado com sucesso' });
+});
 
 export default router;
