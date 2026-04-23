@@ -46,7 +46,8 @@ export async function ldapBindUser(username: string, password: string): Promise<
   try {
     await client.bind(`${username}@${config.ldapDomain}`, password);
     return true;
-  } catch {
+  } catch (err) {
+    console.warn(`[LDAP] bind failed for ${username}@${config.ldapDomain}:`, err);
     return false;
   } finally {
     await client.unbind().catch(() => {});
@@ -71,7 +72,8 @@ export async function ldapSearchUser(username: string): Promise<LdapUser | null>
       displayName:    String(entry.displayName ?? username),
       departmentSlug: extractDeptSlug(dn),
     };
-  } catch {
+  } catch (err) {
+    console.error('[LDAP] searchUser failed for', username, ':', err);
     return null;
   } finally {
     await client.unbind().catch(() => {});
