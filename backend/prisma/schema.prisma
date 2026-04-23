@@ -13,7 +13,7 @@ model User {
   email               String?
   name                String
   department          String?
-  role                String            @default("user")
+  role                String            @default("dept_user")
   active              Boolean           @default(true)
   allowRemoteAccess   Boolean           @default(false)
   lastLoginAt         DateTime?
