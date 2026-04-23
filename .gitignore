@@ -1,0 +1,9 @@
+# Claude Code local settings (machine-specific)
+.claude/
+
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# OS
+.DS_Store
+Thumbs.db
