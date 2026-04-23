@@ -3,7 +3,6 @@ import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../hooks/useAuthStore';
 import NotificationDropdown from '../notifications/NotificationDropdown';
 import {
-  Crown,
   LayoutDashboard,
   ListTodo,
   LogOut,
@@ -44,19 +43,19 @@ const Layout: React.FC = () => {
       </button>
 
       <aside
-        className={`tf-panel fixed inset-y-0 left-0 z-40 w-64 rounded-none border-y-0 border-l-0 transform transition-transform duration-300 lg:static ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 lg:static bg-[color:var(--tf-bg-elevated)] border-r border-[color:var(--tf-border-soft)] ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         <div className="flex h-full flex-col">
-          <div className="border-b-2 border-[color:var(--tf-border-soft)] p-6">
+          <div className="border-b border-[color:var(--tf-border-soft)] p-5">
             <Link to="/dashboard" className="flex items-center gap-3">
-              <div className="tf-frame flex h-11 w-11 items-center justify-center">
-                <Crown className="h-5 w-5 text-[color:var(--tf-primary)]" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e76327]">
+                <img src="/logo115-background.svg" alt="" className="h-8 w-8 object-contain" />
               </div>
               <div>
-                <span className="tf-title block text-2xl text-[color:var(--tf-text-main)]">SbrTask</span>
-                <span className="text-xs uppercase tracking-[0.2em] text-[color:var(--tf-text-dim)]">
+                <span className="block text-lg font-bold text-[color:var(--tf-text-main)]">SbrTask</span>
+                <span className="text-[11px] text-[color:var(--tf-text-dim)]">
                   Laboratório Sobral
                 </span>
               </div>
@@ -64,14 +63,14 @@ const Layout: React.FC = () => {
           </div>
 
           {user && (
-            <div className="border-b-2 border-[color:var(--tf-border-soft)] p-4">
+            <div className="border-b border-[color:var(--tf-border-soft)] p-4">
               <div className="flex items-center gap-3">
-                <div className="tf-frame flex h-12 w-12 items-center justify-center bg-[color:var(--tf-primary)] text-white font-bold text-sm select-none">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e76327] text-white font-bold text-sm select-none">
                   {initials}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-[color:var(--tf-text-main)]">{user.name}</p>
-                  <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--tf-text-dim)]">
+                  <p className="truncate text-sm font-semibold text-[color:var(--tf-text-main)]">{user.name}</p>
+                  <p className="text-[11px] text-[color:var(--tf-text-dim)]">
                     {user.department ?? 'Sem setor'}
                   </p>
                 </div>
@@ -98,10 +97,10 @@ const Layout: React.FC = () => {
             })}
           </nav>
 
-          <div className="space-y-2 border-t-2 border-[color:var(--tf-border-soft)] p-4">
+          <div className="space-y-1 border-t border-[color:var(--tf-border-soft)] p-4">
             <button
               onClick={handleLogout}
-              className="tf-sidebar-link w-full text-[color:var(--tf-danger)] hover:bg-[rgba(216,91,83,0.12)] hover:text-[color:var(--tf-text-main)]"
+              className="tf-sidebar-link w-full text-[color:var(--tf-danger)] hover:bg-[rgba(239,68,68,0.1)] hover:text-[color:var(--tf-danger)]"
             >
               <LogOut className="h-5 w-5" />
               Sair
@@ -115,7 +114,7 @@ const Layout: React.FC = () => {
       )}
 
       <main className="min-h-screen flex-1 lg:ml-0">
-        <header className="relative z-50 flex h-16 items-center justify-between border-b-2 border-[color:var(--tf-border-soft)] bg-[rgba(17,22,29,0.68)] px-4 backdrop-blur-sm lg:px-8">
+        <header className="relative z-50 flex h-16 items-center justify-between border-b border-[color:var(--tf-border-soft)] bg-[color:var(--tf-bg-base)] px-4 lg:px-8">
           <div className="w-10 lg:hidden" />
           <div className="flex items-center gap-4">
             <NotificationDropdown />

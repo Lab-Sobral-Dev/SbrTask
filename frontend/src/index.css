@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Ubuntu:wght@300;400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -14,47 +14,50 @@
 }
 
 @keyframes rankFlash {
-  0%   { background: rgba(217, 164, 65, 0.18); border-color: var(--tf-border-accent); }
-  100% { background: var(--tf-panel); border-color: var(--tf-border); }
+  0%   { background: rgba(231,99,39,0.18); border-color: var(--tf-border-accent); }
+  100% { background: var(--tf-bg-elevated); border-color: var(--tf-border-soft); }
 }
 
 @layer base {
   :root {
-    --tf-bg-base: #11161d;
-    --tf-bg-elevated: #1b2430;
-    --tf-bg-panel: #243041;
-    --tf-bg-panel-hover: #2d3c50;
-    --tf-bg-inset: #0d1218;
+    /* Backgrounds — navy spectrum */
+    --tf-bg-base:        #0f172a;
+    --tf-bg-elevated:    #1a2540;
+    --tf-bg-panel:       #1e2d47;
+    --tf-bg-panel-hover: #253558;
+    --tf-bg-inset:       #0d1627;
 
-    --tf-border-strong: #3f536b;
-    --tf-border-soft: #314154;
-    --tf-border-accent: #7b5a2a;
+    /* Borders */
+    --tf-border-strong:  rgba(255,255,255,0.18);
+    --tf-border-soft:    rgba(255,255,255,0.08);
+    --tf-border-accent:  rgba(231,99,39,0.45);
 
-    --tf-text-main: #e6e1d3;
-    --tf-text-muted: #9aa6b2;
-    --tf-text-dim: #6f7d8c;
-    --tf-text-dark: #1a140b;
+    /* Text */
+    --tf-text-main: #f1f5f9;
+    --tf-text-muted: #94a3b8;
+    --tf-text-dim: #64748b;
+    --tf-text-dark: #0f172a;
 
-    --tf-primary: #d9a441;
-    --tf-primary-hover: #e6b85c;
-    --tf-success: #6ecb63;
-    --tf-danger: #d85b53;
-    --tf-warning: #d98c3f;
-    --tf-info: #6fa8dc;
+    /* Brand — orange */
+    --tf-primary:       #e76327;
+    --tf-primary-hover: #f0752e;
 
-    --tf-shadow-strong: 4px 4px 0 #0a0f14;
-    --tf-shadow-gold: 3px 3px 0 #7b5a2a;
-    --tf-radius-sm: 4px;
-    --tf-radius-md: 6px;
+    /* Semantic */
+    --tf-success: #22c55e;
+    --tf-danger:  #ef4444;
+    --tf-warning: #f59e0b;
+    --tf-info:    #3b82f6;
 
-    /* Brutal layer (escopado para .bx-/.lg-/.gc-) — reusa tokens TF acima */
-    --bx-line: var(--tf-text-main);
-    --bx-line-w: 3px;
+    /* Elevation shadows */
+    --tf-shadow-strong: 0 8px 32px rgba(0,0,0,0.45);
+    --tf-shadow-gold:   0 4px 16px rgba(231,99,39,0.25);
+
+    /* Radius */
+    --tf-radius-sm: 8px;
+    --tf-radius-md: 12px;
+
+    /* Mono font — reserved for specific UI elements */
     --bx-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-  }
-
-  @media (min-width: 980px) {
-    :root { --bx-line-w: 4px; }
   }
 
   html {
@@ -65,12 +68,8 @@
     margin: 0;
     min-height: 100vh;
     background: var(--tf-bg-base);
-    background-image:
-      linear-gradient(90deg, rgba(63, 83, 107, 0.08) 1px, transparent 1px),
-      linear-gradient(rgba(63, 83, 107, 0.08) 1px, transparent 1px);
-    background-size: 24px 24px, 24px 24px;
     color: var(--tf-text-main);
-    font-family: var(--bx-font-mono);
+    font-family: 'Ubuntu', sans-serif;
   }
 
   * {
@@ -94,53 +93,36 @@
 }
 
 @layer components {
-  /*
-   * .tf-title — headline brutal aplicada system-wide.
-   * IBM Plex Mono uppercase + tracking ajustado por contexto via Tailwind utility.
-   * Eyebrows pequenos podem reforcar tracking com tracking-[0.18em].
-   * Headlines grandes herdam o tracking levemente negativo desta base.
-   */
   .tf-title {
-    font-family: var(--bx-font-mono);
+    font-family: 'Ubuntu', sans-serif;
     font-weight: 700;
-    text-transform: uppercase;
     letter-spacing: -0.01em;
   }
-
-  /*
-   * Primitivas brutalizadas — todas as classes .tf-* abaixo foram redefinidas
-   * com tratamento brutal: borda 4px (3px mobile via --bx-line-w), zero radius,
-   * zero shadow, zero gradient, zero transform animation. Tokens --tf-* sao
-   * preservados (palette intacta) — apenas o tratamento visual mudou.
-   * Anti-frankenstein: edit unica que propaga a 145+ ocorrencias no JSX.
-   */
 
   .tf-screen {
     position: relative;
     background: var(--tf-bg-base);
     color: var(--tf-text-main);
-    font-family: var(--bx-font-mono);
+    font-family: 'Ubuntu', sans-serif;
   }
 
   .tf-panel {
     background: var(--tf-bg-elevated);
-    border: var(--bx-line-w) solid var(--tf-text-main);
-    border-radius: 0;
-    box-shadow: none;
+    border: 1px solid var(--tf-border-soft);
+    border-radius: var(--tf-radius-md);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
   }
 
   .tf-panel-inset {
     background: var(--tf-bg-inset);
-    border: var(--bx-line-w) solid var(--tf-text-main);
-    border-radius: 0;
-    box-shadow: none;
+    border: 1px solid var(--tf-border-soft);
+    border-radius: var(--tf-radius-sm);
   }
 
   .tf-frame {
     background: var(--tf-bg-inset);
-    border: var(--bx-line-w) solid var(--tf-primary);
-    border-radius: 0;
-    box-shadow: none;
+    border: 2px solid var(--tf-primary);
+    border-radius: var(--tf-radius-sm);
   }
 
   .tf-btn {
@@ -148,23 +130,21 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    border: var(--bx-line-w) solid var(--tf-text-main);
-    border-radius: 0;
-    padding: 0.7rem 1rem;
-    font-family: var(--bx-font-mono);
-    font-weight: 700;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
+    border: 1px solid var(--tf-border-strong);
+    border-radius: var(--tf-radius-sm);
+    padding: 0.6rem 1rem;
+    font-family: 'Ubuntu', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
     background: var(--tf-bg-panel);
     color: var(--tf-text-main);
-    box-shadow: none;
     cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease;
   }
 
   .tf-btn:hover:not(:disabled) {
-    background: var(--tf-text-main);
-    color: var(--tf-bg-base);
+    background: var(--tf-bg-panel-hover);
+    border-color: var(--tf-border-strong);
   }
 
   .tf-btn:focus-visible {
@@ -173,18 +153,18 @@
   }
 
   .tf-btn:disabled {
-    opacity: 0.55;
+    opacity: 0.5;
     cursor: not-allowed;
   }
 
   .tf-btn-primary {
     background: var(--tf-primary);
-    color: var(--tf-text-dark);
+    border-color: transparent;
+    color: white;
   }
 
   .tf-btn-primary:hover:not(:disabled) {
-    background: var(--tf-text-main);
-    color: var(--tf-bg-base);
+    background: var(--tf-primary-hover);
   }
 
   .tf-btn-secondary {
@@ -194,96 +174,99 @@
 
   .tf-btn-ghost {
     background: transparent;
+    border-color: transparent;
+    color: var(--tf-text-muted);
+  }
+
+  .tf-btn-ghost:hover:not(:disabled) {
+    background: rgba(255,255,255,0.05);
+    border-color: transparent;
     color: var(--tf-text-main);
   }
 
   .tf-input {
     width: 100%;
-    border: var(--bx-line-w) solid var(--tf-text-main);
-    border-radius: 0;
+    border: 1px solid var(--tf-border-strong);
+    border-radius: var(--tf-radius-sm);
     background: var(--tf-bg-inset);
     color: var(--tf-text-main);
-    padding: 0.65rem 0.8rem;
-    font-family: var(--bx-font-mono);
-    font-size: 0.875rem;
-    box-shadow: none;
+    padding: 0.65rem 0.9rem;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 0.9rem;
+    transition: border-color 150ms ease;
   }
 
   .tf-input::placeholder {
-    color: var(--tf-text-muted);
+    color: var(--tf-text-dim);
   }
 
   .tf-input:focus,
   .tf-input:focus-visible {
     border-color: var(--tf-primary);
-    outline: 2px solid var(--tf-primary);
+    outline: 2px solid rgba(231,99,39,0.35);
     outline-offset: 2px;
   }
 
   .tf-label {
     display: block;
     margin-bottom: 0.4rem;
-    font-family: var(--bx-font-mono);
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: var(--tf-text-main);
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--tf-text-muted);
   }
 
   .tf-muted {
-    color: var(--tf-text-main);
+    color: var(--tf-text-muted);
   }
 
   .tf-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    border: 2px solid var(--tf-text-main);
-    border-radius: 0;
-    padding: 0.2rem 0.55rem;
-    font-family: var(--bx-font-mono);
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
+    border: 1px solid var(--tf-border-soft);
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
     background: var(--tf-bg-inset);
-    color: var(--tf-text-main);
+    color: var(--tf-text-muted);
   }
 
   .tf-progress {
     overflow: hidden;
-    border: var(--bx-line-w) solid var(--tf-text-main);
-    border-radius: 0;
+    border: 1px solid var(--tf-border-soft);
+    border-radius: 999px;
     background: var(--tf-bg-inset);
-    height: 16px;
+    height: 8px;
   }
 
   .tf-progress-bar {
     height: 100%;
     background: var(--tf-primary);
-    border-right: var(--bx-line-w) solid var(--tf-text-main);
+    border-radius: 999px;
+    transition: width 300ms ease;
   }
 
   .tf-sidebar-link {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    border: var(--bx-line-w) solid transparent;
-    border-radius: 0;
-    padding: 0.7rem 0.85rem;
-    font-family: var(--bx-font-mono);
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--tf-text-main);
+    border-radius: var(--tf-radius-sm);
+    padding: 0.65rem 0.85rem;
+    font-family: 'Ubuntu', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--tf-text-muted);
     background: transparent;
+    transition: background 150ms ease, color 150ms ease;
+    text-decoration: none;
   }
 
   .tf-sidebar-link:hover {
-    background: var(--tf-bg-inset);
-    border-color: var(--tf-text-main);
+    background: rgba(255,255,255,0.05);
+    color: var(--tf-text-main);
   }
 
   .tf-sidebar-link:focus-visible {
@@ -292,413 +275,12 @@
   }
 
   .tf-sidebar-link-active {
-    background: var(--tf-primary);
-    border-color: var(--tf-text-main);
-    color: var(--tf-text-dark);
-    box-shadow: none;
-  }
-
-  /* =============================================================
-     ============== Brutal layer · Login + Guild Console ==========
-     Prefixo .bx-/.lg-/.gc- · escopado · reusa tokens --tf-*
-     ============================================================= */
-
-  .bx-screen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-    background: var(--tf-bg-base);
-    font-family: var(--bx-font-mono);
-    color: var(--tf-text-main);
-    line-height: 1.45;
-    font-size: 13px;
-  }
-
-  @media (min-width: 980px) {
-    .bx-screen { padding: 24px; }
-  }
-
-  .bx-shell {
-    width: 100%;
-    max-width: 520px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  /* ========== Login panel ========== */
-  .lg-panel {
-    border: var(--bx-line-w) solid var(--bx-line);
-    background: var(--tf-bg-elevated);
-    padding: 18px;
-    border-radius: 0;
-  }
-
-  @media (min-width: 980px) {
-    .lg-panel { padding: 28px; }
-  }
-
-  .lg-emblem-wrap {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 12px;
-  }
-
-  .lg-emblem {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border: var(--bx-line-w) solid var(--bx-line);
-    background: var(--tf-primary);
-    color: var(--tf-text-dark);
-  }
-
-  .lg-title {
-    margin: 0;
-    font-family: var(--bx-font-mono);
-    font-size: 20px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: -0.01em;
-    color: var(--tf-text-main);
-    text-align: center;
-  }
-
-  @media (min-width: 980px) {
-    .lg-title { font-size: 24px; }
-  }
-
-  .lg-meta {
-    margin: 4px 0 18px;
-    font-family: var(--bx-font-mono);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: var(--tf-text-main);
-    text-align: center;
-  }
-
-  .lg-form > * + * {
-    margin-top: 12px;
-  }
-
-  .lg-label {
-    display: block;
-    margin-bottom: 5px;
-    font-family: var(--bx-font-mono);
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: var(--tf-text-main);
-  }
-
-  .lg-input-wrap {
-    position: relative;
-  }
-
-  .lg-input-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--tf-text-dim);
-    pointer-events: none;
-    display: inline-flex;
-    align-items: center;
-  }
-
-  .lg-input {
-    width: 100%;
-    font-family: var(--bx-font-mono);
-    font-size: 13px;
-    padding: 10px 12px 10px 36px;
-    background: var(--tf-bg-inset);
-    border: var(--bx-line-w) solid var(--bx-line);
-    color: var(--tf-text-main);
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .lg-input::placeholder {
-    color: var(--tf-text-muted);
-  }
-
-  .lg-input:focus,
-  .lg-input:focus-visible {
-    border-color: var(--tf-primary);
-    outline: 2px solid var(--tf-primary);
-    outline-offset: 2px;
-  }
-
-  .lg-input:focus + .lg-input-icon,
-  .lg-input-wrap:focus-within .lg-input-icon {
+    background: rgba(231,99,39,0.12);
     color: var(--tf-primary);
   }
 
-  .lg-error {
-    margin-top: 6px;
-    font-family: var(--bx-font-mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--tf-danger);
-  }
-
-  .lg-error-banner {
-    border: var(--bx-line-w) solid var(--tf-danger);
-    background: var(--tf-bg-inset);
-    padding: 10px 12px;
-    font-family: var(--bx-font-mono);
-    font-size: 12px;
-    color: var(--tf-danger);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .lg-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 11px 14px;
-    font-family: var(--bx-font-mono);
-    font-weight: 700;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    background: var(--tf-primary);
-    color: var(--tf-text-dark);
-    border: var(--bx-line-w) solid var(--bx-line);
-    border-radius: 0;
-    cursor: pointer;
-  }
-
-  .lg-btn:hover:not(:disabled) {
-    background: var(--tf-text-main);
-    color: var(--tf-bg-base);
-  }
-
-  .lg-btn:focus-visible {
-    outline: 2px solid var(--tf-primary);
-    outline-offset: 2px;
-  }
-
-  .lg-btn:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-
-  .lg-bottom {
-    margin: 16px 0 0;
-    text-align: center;
-    font-family: var(--bx-font-mono);
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: var(--tf-text-muted);
-  }
-
-  .lg-bottom a {
+  .tf-sidebar-link-active:hover {
+    background: rgba(231,99,39,0.18);
     color: var(--tf-primary);
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    text-decoration-thickness: 2px;
-    font-weight: 700;
-    margin-left: 4px;
   }
-
-  .lg-bottom a:hover {
-    color: var(--tf-text-main);
-  }
-
-  /* ========== Guild Console (collapsible) ========== */
-  .gc-details {
-    border: var(--bx-line-w) solid var(--bx-line);
-    background: var(--tf-bg-elevated);
-    border-radius: 0;
-  }
-
-  .gc-summary {
-    list-style: none;
-    cursor: pointer;
-    padding: 12px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    user-select: none;
-    background: var(--tf-bg-inset);
-    border-bottom: var(--bx-line-w) solid transparent;
-  }
-
-  .gc-summary::-webkit-details-marker { display: none; }
-  .gc-summary::marker { content: ''; }
-
-  .gc-details[open] > .gc-summary {
-    border-bottom-color: var(--bx-line);
-  }
-
-  .gc-summary:hover { background: var(--tf-bg-panel); }
-
-  .gc-summary:focus-visible {
-    outline: 2px solid var(--tf-primary);
-    outline-offset: 2px;
-  }
-
-  .gc-summary-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border: var(--bx-line-w) solid var(--bx-line);
-    background: var(--tf-bg-elevated);
-    color: var(--tf-primary);
-    flex-shrink: 0;
-  }
-
-  .gc-summary-text {
-    flex: 1;
-    min-width: 0;
-    font-family: var(--bx-font-mono);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: var(--tf-text-main);
-  }
-
-  .gc-summary-text::before {
-    content: '// ';
-    color: var(--tf-text-dim);
-  }
-
-  .gc-summary-hint {
-    font-family: var(--bx-font-mono);
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--tf-text-dim);
-    display: none;
-  }
-
-  @media (min-width: 540px) {
-    .gc-summary-hint { display: inline; }
-  }
-
-  .gc-chevron {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: var(--bx-line-w) solid var(--bx-line);
-    background: var(--tf-primary);
-    color: var(--tf-text-dark);
-    transition: transform 150ms ease;
-  }
-
-  .gc-details[open] .gc-chevron {
-    transform: rotate(180deg);
-  }
-
-  .gc-content { padding: 18px; }
-
-  @media (min-width: 980px) {
-    .gc-content { padding: 24px; }
-  }
-
-  .gc-headline {
-    margin: 0 0 10px;
-    font-family: var(--bx-font-mono);
-    font-size: clamp(18px, 4.5vw, 26px);
-    font-weight: 700;
-    line-height: 1.15;
-    text-transform: uppercase;
-    letter-spacing: -0.01em;
-    color: var(--tf-text-main);
-  }
-
-  .gc-tagline {
-    margin: 0 0 14px;
-    font-family: var(--bx-font-mono);
-    font-size: 12px;
-    line-height: 1.55;
-    color: var(--tf-text-main);
-  }
-
-  @media (min-width: 980px) {
-    .gc-tagline { font-size: 13px; }
-  }
-
-  .gc-cards {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  @media (min-width: 540px) {
-    .gc-cards {
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-    }
-  }
-
-  .gc-card {
-    border: var(--bx-line-w) solid var(--bx-line);
-    background: var(--tf-bg-inset);
-    padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .gc-card-title {
-    margin: 0;
-    display: inline-block;
-    align-self: flex-start;
-    padding: 2px 6px;
-    border: 2px solid var(--bx-line);
-    font-family: var(--bx-font-mono);
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    color: var(--tf-text-dark);
-    line-height: 1.2;
-  }
-
-  .gc-card-painel     .gc-card-title { background: var(--tf-info); }
-  .gc-card-missoes    .gc-card-title { background: var(--tf-success); }
-  .gc-card-conquistas .gc-card-title { background: var(--tf-warning); }
-
-  .gc-card-text {
-    margin: 0;
-    font-family: var(--bx-font-mono);
-    font-size: 11px;
-    line-height: 1.45;
-    color: var(--tf-text-muted);
-  }
-
-  @media (min-width: 980px) {
-    .gc-card-text { font-size: 12px; }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .gc-details[open] .gc-content {
-      animation: gc-slide-down 180ms ease-out;
-    }
-  }
-}
-
-/* @keyframes precisa estar no top-level (fora de @layer) para suporte cross-browser consistente */
-@keyframes gc-slide-down {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
 }

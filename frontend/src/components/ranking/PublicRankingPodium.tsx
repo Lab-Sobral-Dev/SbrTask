@@ -14,10 +14,10 @@ const configs = [
     frameSize: 'h-20 w-20',
     textSize: 'text-xl',
     borderColor: 'border-[color:var(--tf-border-accent)]',
-    shadowClass: 'shadow-[0_0_24px_rgba(217,164,65,0.5)]',
+    shadowClass: 'shadow-[0_0_24px_rgba(231,99,39,0.45)]',
     glowClass: 'animate-pulse',
     icon: <Crown className="h-6 w-6 text-[color:var(--tf-primary)]" />,
-    bgGradient: 'linear-gradient(180deg,rgba(217,164,65,0.18),transparent)',
+    bgGradient: 'linear-gradient(180deg,rgba(231,99,39,0.15),transparent)',
   },
   {
     baseHeight: 'h-14',

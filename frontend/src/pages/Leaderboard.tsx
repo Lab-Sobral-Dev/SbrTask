@@ -30,11 +30,11 @@ const Leaderboard: React.FC = () => {
   const getRankStyles = (rank: number) => {
     switch (rank) {
       case 1:
-        return 'border-[color:var(--tf-border-accent)] bg-[linear-gradient(180deg,rgba(217,164,65,0.18),rgba(27,36,48,0.98))]';
+        return 'border-[color:var(--tf-border-accent)] bg-[linear-gradient(180deg,rgba(231,99,39,0.14),transparent)]';
       case 2:
-        return 'border-[#6d7988] bg-[linear-gradient(180deg,rgba(148,163,184,0.12),rgba(27,36,48,0.98))]';
+        return 'border-slate-600 bg-[linear-gradient(180deg,rgba(148,163,184,0.08),transparent)]';
       case 3:
-        return 'border-[#8f5d34] bg-[linear-gradient(180deg,rgba(200,135,75,0.14),rgba(27,36,48,0.98))]';
+        return 'border-amber-800/60 bg-[linear-gradient(180deg,rgba(200,135,75,0.1),transparent)]';
       default:
         return '';
     }

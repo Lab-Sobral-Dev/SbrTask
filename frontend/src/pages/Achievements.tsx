@@ -47,7 +47,7 @@ type AchievementForm = z.infer<typeof achievementSchema>;
 const typeColors: Record<string, string> = {
   daily: 'border-[color:var(--tf-info)] bg-[rgba(111,168,220,0.14)] text-[color:var(--tf-info)]',
   weekly: 'border-[#7f6cff] bg-[rgba(127,108,255,0.14)] text-[#b6adff]',
-  milestone: 'border-[color:var(--tf-primary)] bg-[rgba(217,164,65,0.14)] text-[color:var(--tf-primary)]',
+  milestone: 'border-[color:var(--tf-primary)] bg-[rgba(231,99,39,0.12)] text-[color:var(--tf-primary)]',
 };
 
 const typeLabels: Record<string, string> = {
@@ -278,8 +278,8 @@ const Achievements: React.FC = () => {
                 <div
                   className={`flex h-16 w-16 items-center justify-center rounded-[6px] border-2 ${
                     achievement.achieved
-                      ? 'border-[color:var(--tf-border-accent)] bg-[rgba(217,164,65,0.12)] text-[color:var(--tf-primary)]'
-                      : 'border-[color:var(--tf-border-soft)] bg-[rgba(17,22,29,0.7)] text-[color:var(--tf-text-dim)]'
+                      ? 'border-[color:var(--tf-border-accent)] bg-[rgba(231,99,39,0.12)] text-[color:var(--tf-primary)]'
+                      : 'border-[color:var(--tf-border-soft)] bg-[color:var(--tf-bg-inset)] text-[color:var(--tf-text-dim)]'
                   }`}
                 >
                   {achievement.achieved

@@ -7,11 +7,11 @@ import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, LineChart, P
 import { ArrowUp, Calendar, CheckCircle, Clock, Target, TrendingUp, Trophy } from 'lucide-react';
 
 const chartTheme = {
-  axis: '#9aa6b2',
-  grid: '#314154',
-  tooltipBg: '#11161d',
-  tooltipBorder: '#3f536b',
-  text: '#e6e1d3',
+  axis: '#64748b',
+  grid: 'rgba(255,255,255,0.06)',
+  tooltipBg: '#0d1627',
+  tooltipBorder: 'rgba(255,255,255,0.15)',
+  text: '#f1f5f9',
 };
 
 const Dashboard: React.FC = () => {
@@ -71,9 +71,9 @@ const Dashboard: React.FC = () => {
     : [];
 
   const statusData = [
-    { name: 'Pendentes', value: pendingTasks.length, color: '#d98c3f' },
-    { name: 'Em andamento', value: inProgressTasks.length, color: '#6fa8dc' },
-    { name: 'Concluidas', value: completedTasks.length, color: '#6ecb63' },
+    { name: 'Pendentes', value: pendingTasks.length, color: '#f59e0b' },
+    { name: 'Em andamento', value: inProgressTasks.length, color: '#3b82f6' },
+    { name: 'Concluidas', value: completedTasks.length, color: '#22c55e' },
   ];
 
   const weeklyData = [
@@ -164,8 +164,8 @@ const Dashboard: React.FC = () => {
               <AreaChart data={weeklyData}>
                 <defs>
                   <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#d9a441" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#d9a441" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#e76327" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#e76327" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
@@ -176,7 +176,7 @@ const Dashboard: React.FC = () => {
                   contentStyle={{ backgroundColor: chartTheme.tooltipBg, border: `2px solid ${chartTheme.tooltipBorder}`, borderRadius: '4px', color: chartTheme.text }}
                   labelStyle={{ color: chartTheme.text }}
                 />
-                <Area type="monotone" dataKey="xp" stroke="#d9a441" fillOpacity={1} fill="url(#colorXp)" />
+                <Area type="monotone" dataKey="xp" stroke="#e76327" fillOpacity={1} fill="url(#colorXp)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -244,7 +244,7 @@ const Dashboard: React.FC = () => {
                     formatter={renderTooltip}
                     contentStyle={{ backgroundColor: chartTheme.tooltipBg, border: `2px solid ${chartTheme.tooltipBorder}`, borderRadius: '4px', color: chartTheme.text }}
                   />
-                  <Bar dataKey="value" fill="#d98c3f" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="value" fill="#e76327" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -266,7 +266,7 @@ const Dashboard: React.FC = () => {
                   formatter={renderTooltip}
                   contentStyle={{ backgroundColor: chartTheme.tooltipBg, border: `2px solid ${chartTheme.tooltipBorder}`, borderRadius: '4px', color: chartTheme.text }}
                 />
-                <Line type="monotone" dataKey="xp" stroke="#6fa8dc" strokeWidth={2} dot={{ fill: '#6fa8dc' }} />
+                <Line type="monotone" dataKey="xp" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -286,7 +286,7 @@ const Dashboard: React.FC = () => {
                   className="h-3 w-3 rounded-[2px]"
                   style={{
                     backgroundColor:
-                      task.status === 'completed' ? '#6ecb63' : task.status === 'in_progress' ? '#6fa8dc' : '#d98c3f',
+                      task.status === 'completed' ? '#22c55e' : task.status === 'in_progress' ? '#3b82f6' : '#f59e0b',
                   }}
                 />
                 <span className="font-medium text-[color:var(--tf-text-main)]">{task.title}</span>
