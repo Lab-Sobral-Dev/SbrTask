@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Award, Crown, Medal, TrendingUp, Users } from 'lucide-react';
-import { Avatar } from '../components/character/Avatar';
 import { achievements } from '../services/api';
 
 const Leaderboard: React.FC = () => {
@@ -95,12 +94,12 @@ const Leaderboard: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4 md:flex-1">
-                  <div className="tf-frame h-14 w-14 overflow-hidden">
-                    <Avatar data={player.avatar} size="sm" />
+                  <div className="tf-frame h-14 w-14 overflow-hidden flex items-center justify-center bg-[color:var(--tf-primary)] text-white font-bold select-none">
+                    {String(player.name ?? '?').split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase()}
                   </div>
                   <div>
                     <h3 className="tf-title text-xl text-[color:var(--tf-text-main)]">{player.name}</h3>
-                    <p className="mt-1 text-sm uppercase tracking-[0.14em] text-[color:var(--tf-text-dim)]">{player.sector}</p>
+                    <p className="mt-1 text-sm uppercase tracking-[0.14em] text-[color:var(--tf-text-dim)]">{player.department ?? '—'}</p>
                   </div>
                 </div>
 

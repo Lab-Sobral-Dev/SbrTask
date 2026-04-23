@@ -38,7 +38,7 @@ export interface LeaderboardEntry {
   id: string;
   name: string;
   department: string | null;
-  xpReward: number;
+  xp: number;
 }
 
 export interface TaskStats {

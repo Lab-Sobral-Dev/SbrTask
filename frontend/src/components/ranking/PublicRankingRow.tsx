@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { Avatar } from '../character/Avatar';
 import type { LeaderboardEntry } from '../../types';
 
 interface Props {
@@ -30,6 +29,13 @@ const PublicRankingRow: React.FC<Props> = ({ player, delta, highlighted, animati
       : 'text-[color:var(--tf-text-dim)]';
   const deltaLabel = delta > 0 ? `▲${delta}` : delta < 0 ? `▼${Math.abs(delta)}` : '—';
 
+  const initials = player.name
+    .split(' ')
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase();
+
   return (
     <div
       ref={rowRef}
@@ -40,22 +46,18 @@ const PublicRankingRow: React.FC<Props> = ({ player, delta, highlighted, animati
         #{player.rank}
       </div>
 
-      <div className="tf-frame h-11 w-11 overflow-hidden flex-shrink-0 flex items-center justify-center">
-        <Avatar data={player.avatar} size="sm" />
+      <div className="tf-frame h-11 w-11 overflow-hidden flex-shrink-0 flex items-center justify-center bg-[color:var(--tf-primary)] text-white text-sm font-bold select-none">
+        {initials}
       </div>
 
       <div className="flex-1 min-w-0">
         <p className="tf-title text-sm text-[color:var(--tf-text-main)] truncate">{player.name}</p>
         <p className="text-[10px] uppercase tracking-[1.2px] text-[color:var(--tf-text-dim)]">
-          {player.sector}
+          {player.department ?? '—'}
         </p>
       </div>
 
       <div className="hidden sm:flex gap-5 flex-shrink-0">
-        <div className="tf-panel-inset px-3 py-1 text-center">
-          <p className="text-[9px] uppercase tracking-[1.5px] text-[color:var(--tf-text-dim)]">Nível</p>
-          <p className="text-base font-bold text-[color:var(--tf-info)]">{player.level}</p>
-        </div>
         <div className="tf-panel-inset px-3 py-1 text-center">
           <p className="text-[9px] uppercase tracking-[1.5px] text-[color:var(--tf-text-dim)]">XP</p>
           <p className="text-base font-bold text-[color:var(--tf-primary)]">

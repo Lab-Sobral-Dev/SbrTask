@@ -1,22 +1,18 @@
 import React from 'react';
 import { Crown, Medal, Award } from 'lucide-react';
-import { Avatar } from '../character/Avatar';
 import type { LeaderboardEntry } from '../../types';
 
 interface Props {
   top3: LeaderboardEntry[];
 }
 
-// visual order: left=2nd, center=1st, right=3rd
 const podiumOrder = [1, 0, 2];
 
-// indexed by playerIdx (0=1st place, 1=2nd place, 2=3rd place)
 const configs = [
   {
-    // 1st place
     baseHeight: 'h-20',
     frameSize: 'h-20 w-20',
-    avatarSize: 'md' as const,
+    textSize: 'text-xl',
     borderColor: 'border-[color:var(--tf-border-accent)]',
     shadowClass: 'shadow-[0_0_24px_rgba(217,164,65,0.5)]',
     glowClass: 'animate-pulse',
@@ -24,10 +20,9 @@ const configs = [
     bgGradient: 'linear-gradient(180deg,rgba(217,164,65,0.18),transparent)',
   },
   {
-    // 2nd place
     baseHeight: 'h-14',
     frameSize: 'h-16 w-16',
-    avatarSize: 'sm' as const,
+    textSize: 'text-lg',
     borderColor: 'border-[#6d7988]',
     shadowClass: 'shadow-[0_0_14px_rgba(185,194,207,0.3)]',
     glowClass: '',
@@ -35,10 +30,9 @@ const configs = [
     bgGradient: 'linear-gradient(180deg,rgba(185,194,207,0.1),transparent)',
   },
   {
-    // 3rd place
     baseHeight: 'h-10',
     frameSize: 'h-14 w-14',
-    avatarSize: 'sm' as const,
+    textSize: 'text-base',
     borderColor: 'border-[#8f5d34]',
     shadowClass: 'shadow-[0_0_10px_rgba(200,135,75,0.3)]',
     glowClass: '',
@@ -55,6 +49,12 @@ const PublicRankingPodium: React.FC<Props> = ({ top3 }) => {
       {podiumOrder.map((playerIdx) => {
         const player = top3[playerIdx];
         const cfg = configs[playerIdx];
+        const initials = player.name
+          .split(' ')
+          .slice(0, 2)
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase();
 
         return (
           <div key={player.id} className="flex flex-col items-center gap-2">
@@ -62,11 +62,10 @@ const PublicRankingPodium: React.FC<Props> = ({ top3 }) => {
               <Crown className="h-6 w-6 text-[color:var(--tf-primary)] animate-bounce" />
             )}
 
-            {/* Avatar frame — tf-frame sem rounded para não cortar o pixel-art */}
             <div
-              className={`tf-frame ${cfg.frameSize} overflow-hidden flex items-center justify-center border-2 ${cfg.borderColor} ${cfg.shadowClass} ${cfg.glowClass}`}
+              className={`tf-frame ${cfg.frameSize} overflow-hidden flex items-center justify-center border-2 ${cfg.borderColor} ${cfg.shadowClass} ${cfg.glowClass} bg-[color:var(--tf-primary)] text-white font-bold select-none ${cfg.textSize}`}
             >
-              <Avatar data={player.avatar} size={cfg.avatarSize} />
+              {initials}
             </div>
 
             <div className="text-center">

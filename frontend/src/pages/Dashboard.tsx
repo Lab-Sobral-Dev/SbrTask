@@ -3,10 +3,8 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { achievements, tasks } from '../services/api';
 import { useAuthStore } from '../hooks/useAuthStore';
-import { Avatar } from '../components/character/Avatar';
-import { xpLevelProgress } from '../lib/xp';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { ArrowUp, Calendar, CheckCircle, Clock, Target, TrendingUp, Trophy, Zap } from 'lucide-react';
+import { ArrowUp, Calendar, CheckCircle, Clock, Target, TrendingUp, Trophy } from 'lucide-react';
 
 const chartTheme = {
   axis: '#9aa6b2',
@@ -88,7 +86,9 @@ const Dashboard: React.FC = () => {
     { day: 'Dom', xp: 20 },
   ];
 
-  const xpInfo = user ? xpLevelProgress(user.xp, user.level) : { progress: 0, needed: 100, pct: 0 };
+  const initials = user?.name
+    ? user.name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
+    : '?';
 
   const renderTooltip = (value: any, name: any) => [value, name];
 
@@ -97,29 +97,29 @@ const Dashboard: React.FC = () => {
       <section className="tf-panel p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
           <div className="flex items-center gap-5">
-            <div className="tf-frame flex h-24 w-24 items-center justify-center overflow-hidden">
-              <div className="tf-panel-inset flex h-full w-full items-center justify-center">
-                {user && <Avatar data={user.avatar} size="md" />}
-              </div>
+            <div className="tf-frame flex h-24 w-24 items-center justify-center bg-[color:var(--tf-primary)] text-white text-2xl font-bold select-none">
+              {initials}
             </div>
             <div>
-              <p className="tf-title text-sm uppercase tracking-[0.18em] text-[color:var(--tf-primary)]">Guild overview</p>
+              <p className="tf-title text-sm uppercase tracking-[0.18em] text-[color:var(--tf-primary)]">
+                {user?.department ?? 'Colaborador'}
+              </p>
               <h1 className="tf-title mt-2 text-3xl text-[color:var(--tf-text-main)]">Bem-vindo, {user?.name}</h1>
-              <p className="mt-2 text-[color:var(--tf-text-muted)]">Continue sua jornada e empilhe conquistas para subir de nivel.</p>
+              <p className="mt-2 text-[color:var(--tf-text-muted)]">Acompanhe suas tarefas e conquistas.</p>
             </div>
           </div>
 
           <div className="grid flex-1 gap-3 sm:grid-cols-3">
             <div className="tf-panel-inset p-4">
-              <p className="tf-title text-xs uppercase tracking-[0.16em] text-[color:var(--tf-text-dim)]">XP total</p>
+              <p className="tf-title text-xs uppercase tracking-[0.16em] text-[color:var(--tf-text-dim)]">Total</p>
               <p className="mt-2 flex items-center gap-2 text-2xl font-bold text-[color:var(--tf-primary)]">
-                <Zap className="h-5 w-5" />
-                {user?.xp || 0}
+                <Target className="h-5 w-5" />
+                {taskList.length}
               </p>
             </div>
             <div className="tf-panel-inset p-4">
-              <p className="tf-title text-xs uppercase tracking-[0.16em] text-[color:var(--tf-text-dim)]">Nivel</p>
-              <p className="mt-2 text-2xl font-bold text-[color:var(--tf-text-main)]">{user?.level || 1}</p>
+              <p className="tf-title text-xs uppercase tracking-[0.16em] text-[color:var(--tf-text-dim)]">Pendentes</p>
+              <p className="mt-2 text-2xl font-bold text-[color:var(--tf-text-main)]">{pendingTasks.length}</p>
             </div>
             <div className="tf-panel-inset p-4">
               <p className="tf-title text-xs uppercase tracking-[0.16em] text-[color:var(--tf-text-dim)]">Conquistas</p>
@@ -128,18 +128,6 @@ const Dashboard: React.FC = () => {
                 {achievedCount}
               </p>
             </div>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <div className="mb-2 flex justify-between text-sm">
-            <span className="text-[color:var(--tf-text-muted)]">Progresso para o proximo nivel</span>
-            <span className="font-semibold text-[color:var(--tf-primary)]">
-              {xpInfo.progress}/{xpInfo.needed} XP ({Math.round(xpInfo.pct)}%)
-            </span>
-          </div>
-          <div className="tf-progress h-4 w-full">
-            <div className="tf-progress-bar transition-all duration-500" style={{ width: `${xpInfo.pct}%` }} />
           </div>
         </div>
       </section>
