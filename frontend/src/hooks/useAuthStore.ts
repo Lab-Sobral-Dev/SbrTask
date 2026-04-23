@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User, AvatarData } from '../types';
+import { User } from '../types';
 import { auth } from '../services/api';
 
 interface AuthState {
@@ -9,7 +9,6 @@ interface AuthState {
   isInitializing: boolean;
   setAuth: (user: User, token: string) => void;
   updateUser: (user: Partial<User>) => void;
-  updateAvatar: (avatar: AvatarData) => void;
   logout: () => void;
   initAuth: () => Promise<void>;
 }
@@ -28,11 +27,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   updateUser: (userData) =>
     set((state) => ({
       user: state.user ? { ...state.user, ...userData } : null,
-    })),
-
-  updateAvatar: (avatar) =>
-    set((state) => ({
-      user: state.user ? { ...state.user, avatar } : null,
     })),
 
   logout: () => {

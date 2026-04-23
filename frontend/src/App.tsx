@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/layout/Layout';
 import PublicLayout from './components/layout/PublicLayout';
 import Login from './pages/Login';
-import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import Achievements from './pages/Achievements';
@@ -62,8 +61,6 @@ function App() {
         <AppBoot />
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
           <Route element={<PublicLayout />}>
             <Route path="/ranking" element={<PublicRanking />} />
           </Route>

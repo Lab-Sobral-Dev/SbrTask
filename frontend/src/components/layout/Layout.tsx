@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Avatar } from '../../components/character/Avatar';
 import { useAuthStore } from '../../hooks/useAuthStore';
 import NotificationDropdown from '../notifications/NotificationDropdown';
-import { xpLevelProgress } from '../../lib/xp';
 import {
-  ChevronDown,
-  ChevronUp,
   Crown,
   LayoutDashboard,
   ListTodo,
@@ -21,7 +17,6 @@ const Layout: React.FC = () => {
   const location = useLocation();
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showXP, setShowXP] = useState(false);
 
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -34,6 +29,10 @@ const Layout: React.FC = () => {
     logout();
     window.location.href = '/login';
   };
+
+  const initials = user?.name
+    ? user.name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
+    : '?';
 
   return (
     <div className="tf-screen min-h-screen flex">
@@ -58,7 +57,7 @@ const Layout: React.FC = () => {
               <div>
                 <span className="tf-title block text-2xl text-[color:var(--tf-text-main)]">SbrTask</span>
                 <span className="text-xs uppercase tracking-[0.2em] text-[color:var(--tf-text-dim)]">
-                  Terminal Fantasy
+                  Laboratório Sobral
                 </span>
               </div>
             </Link>
@@ -67,48 +66,16 @@ const Layout: React.FC = () => {
           {user && (
             <div className="border-b-2 border-[color:var(--tf-border-soft)] p-4">
               <div className="flex items-center gap-3">
-                <div className="tf-frame h-12 w-12 overflow-hidden">
-                  <Avatar data={user.avatar} size="sm" />
+                <div className="tf-frame flex h-12 w-12 items-center justify-center bg-[color:var(--tf-primary)] text-white font-bold text-sm select-none">
+                  {initials}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-[color:var(--tf-text-main)]">{user.name}</p>
                   <p className="text-xs uppercase tracking-[0.14em] text-[color:var(--tf-text-dim)]">
-                    {user.sector}
+                    {user.department ?? 'Sem setor'}
                   </p>
                 </div>
               </div>
-
-              <button
-                onClick={() => setShowXP(!showXP)}
-                className="tf-panel-inset mt-3 flex w-full items-center justify-between p-3"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="tf-title text-sm text-[color:var(--tf-primary)]">Nivel {user.level}</span>
-                </div>
-                {showXP ? (
-                  <ChevronUp className="h-4 w-4 text-[color:var(--tf-text-dim)]" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-[color:var(--tf-text-dim)]" />
-                )}
-              </button>
-
-              {showXP && (() => {
-                const xpInfo = xpLevelProgress(user.xp, user.level);
-                return (
-                  <div className="mt-2">
-                    <div className="mb-1 flex justify-between text-xs text-[color:var(--tf-text-dim)]">
-                      <span>{xpInfo.progress} XP</span>
-                      <span>Próximo: {xpInfo.needed} XP</span>
-                    </div>
-                    <div className="tf-progress h-3 w-full">
-                      <div
-                        className="tf-progress-bar transition-all"
-                        style={{ width: `${xpInfo.pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })()}
             </div>
           )}
 

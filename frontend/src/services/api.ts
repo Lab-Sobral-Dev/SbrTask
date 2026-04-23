@@ -28,15 +28,12 @@ api.interceptors.response.use(
 );
 
 export const auth = {
-  register: (data: { email: string; password: string; name: string; sector: string; avatar?: object }) =>
-    api.post('/auth/register', data),
-  login: (email: string, password: string) => api.post('/auth/login', { email, password }),
+  login: (username: string, password: string) => api.post('/auth/login', { username, password }),
   me: () => api.get('/auth/me'),
-  getXPProgress: () => api.get('/auth/xp'),
 };
 
 export const users = {
-  getAll: () => api.get<{ id: string; name: string; sector: string; role: string }[]>('/auth/users'),
+  getAll: () => api.get<{ id: string; name: string; department: string | null; role: string }[]>('/auth/users'),
 };
 
 export const tasks = {

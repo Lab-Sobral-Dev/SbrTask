@@ -1,30 +1,10 @@
 export interface User {
   id: string;
-  email: string;
   name: string;
-  sector: string;
+  email: string | null;
+  department: string | null;
   role: string;
-  level: number;
-  xp: number;
-  avatar: AvatarData;
-  createdAt: string;
-}
-
-export interface AvatarData {
-  skinColor: string;
-  hair: string;
-  hairColor: string;
-  eyes: string;
-  mouth: string;
-  beard: string | null;
-  clothing: string;
-  clothingColor: string;
-  accessories: string[];
-  backgroundColor: string;
-  glasses: string | null;
-  glassesColor: string;
-  hat: string | null;
-  hatColor: string;
+  createdAt?: string;
 }
 
 export interface Task {
@@ -57,10 +37,8 @@ export interface LeaderboardEntry {
   rank: number;
   id: string;
   name: string;
-  sector: string;
-  level: number;
-  xp: number;
-  avatar: AvatarData;
+  department: string | null;
+  xpReward: number;
 }
 
 export interface TaskStats {
@@ -75,12 +53,4 @@ export interface TaskStats {
   };
   recentCompleted: number;
   totalXPFromTasks: number;
-}
-
-export interface XPProgress {
-  currentLevel: number;
-  currentXP: number;
-  xpForNextLevel: number;
-  xpProgress: number;
-  xpNeeded: number;
 }
