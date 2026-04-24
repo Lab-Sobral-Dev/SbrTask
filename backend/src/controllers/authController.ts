@@ -119,7 +119,7 @@ export const getUsers = async (_req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const { role, active } = req.body as { role?: string; active?: boolean };
 
     const allowed = { role: ['admin', 'dept_user'], active: [true, false] };
