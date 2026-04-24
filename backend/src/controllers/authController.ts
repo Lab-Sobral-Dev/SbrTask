@@ -33,6 +33,7 @@ export const login = async (req: Request, res: Response) => {
           email,
           name:        adUser.displayName,
           department:  adUser.departmentSlug,
+          lastLoginAt: new Date(),
         },
       });
     } else {
