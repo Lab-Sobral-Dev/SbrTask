@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { login, getMe, getUsers } from '../controllers/authController';
+import { login, getMe, getUsers, updateUser } from '../controllers/authController';
 import { authMiddleware } from '../middlewares/auth';
 import { adminMiddleware } from '../middlewares/admin';
 
@@ -20,6 +20,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', authMiddleware, getMe);
 router.get('/users', authMiddleware, adminMiddleware, getUsers);
+router.patch('/users/:id', authMiddleware, adminMiddleware, updateUser);
 
 router.post('/logout', authMiddleware, (_req, res) => {
   return res.json({ message: 'Logout realizado com sucesso' });

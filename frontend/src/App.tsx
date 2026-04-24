@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Tasks from './pages/Tasks';
 import Achievements from './pages/Achievements';
 import Leaderboard from './pages/Leaderboard';
+import AdminUsers from './pages/AdminUsers';
 import PublicRanking from './pages/PublicRanking';
 import { useAuthStore } from './hooks/useAuthStore';
 
@@ -95,6 +96,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Leaderboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute>
+                  <AdminUsers />
                 </ProtectedRoute>
               }
             />

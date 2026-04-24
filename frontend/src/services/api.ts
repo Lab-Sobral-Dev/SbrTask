@@ -32,8 +32,21 @@ export const auth = {
   me: () => api.get('/auth/me'),
 };
 
+export type UserRecord = {
+  id: string;
+  adUsername: string;
+  name: string;
+  email: string | null;
+  department: string | null;
+  role: string;
+  active: boolean;
+  lastLoginAt: string | null;
+};
+
 export const users = {
-  getAll: () => api.get<{ id: string; name: string; department: string | null; role: string }[]>('/auth/users'),
+  getAll: () => api.get<UserRecord[]>('/auth/users'),
+  update: (id: string, data: { role?: string; active?: boolean }) =>
+    api.patch<{ id: string; role: string; active: boolean }>(`/auth/users/${id}`, data),
 };
 
 export const tasks = {

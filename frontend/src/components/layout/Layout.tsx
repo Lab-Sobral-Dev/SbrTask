@@ -7,6 +7,7 @@ import {
   ListTodo,
   LogOut,
   Menu,
+  Shield,
   Trophy,
   Users,
   X,
@@ -17,11 +18,14 @@ const Layout: React.FC = () => {
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const isAdmin = user?.role === 'admin';
+
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/tasks', icon: ListTodo, label: 'Tarefas' },
     { path: '/achievements', icon: Trophy, label: 'Conquistas' },
     { path: '/leaderboard', icon: Users, label: 'Ranking' },
+    ...(isAdmin ? [{ path: '/admin/users', icon: Shield, label: 'Usuários' }] : []),
   ];
 
   const handleLogout = () => {

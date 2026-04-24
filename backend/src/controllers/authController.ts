@@ -107,12 +107,38 @@ export const getMe = async (req: Request, res: Response) => {
 export const getUsers = async (_req: Request, res: Response) => {
   try {
     const userList = await prisma.user.findMany({
-      select: { id: true, name: true, department: true, role: true },
+      select: { id: true, adUsername: true, name: true, email: true, department: true, role: true, active: true, lastLoginAt: true },
       orderBy: { name: 'asc' },
     });
     return res.json(userList);
   } catch (error) {
     console.error('Erro ao buscar usuários:', error);
     return res.status(500).json({ error: 'Erro ao buscar usuários' });
+  }
+};
+
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { role, active } = req.body as { role?: string; active?: boolean };
+
+    const allowed = { role: ['admin', 'dept_user'], active: [true, false] };
+    if (role !== undefined && !allowed.role.includes(role)) {
+      return res.status(400).json({ error: 'Role inválida' });
+    }
+
+    const data: Record<string, unknown> = {};
+    if (role !== undefined) data.role = role;
+    if (active !== undefined) data.active = active;
+
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({ error: 'Nenhum campo para atualizar' });
+    }
+
+    const updated = await prisma.user.update({ where: { id }, data });
+    return res.json({ id: updated.id, role: updated.role, active: updated.active });
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
+    return res.status(500).json({ error: 'Erro ao atualizar usuário' });
   }
 };
