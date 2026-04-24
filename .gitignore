@@ -4,6 +4,14 @@
 # Playwright MCP artifacts
 .playwright-mcp/
 
+# Env files — nunca commitar credenciais
+.env
+.env.*
+!.env.example
+*/.env
+*/.env.*
+!*/.env.example
+
 # OS
 .DS_Store
 Thumbs.db
