@@ -76,14 +76,104 @@ const Login: React.FC = () => {
         <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full border border-white/10 bg-[rgba(231,99,39,0.08)] z-[4] pointer-events-none" />
 
         {/* Conteúdo da marca */}
-        <div className="relative z-10 flex flex-col items-center justify-center h-full gap-4 p-8 text-center text-white">
-          <img
-            src="/logo1_transp.svg"
-            alt="Laboratório Sobral"
-            className="w-28 h-auto mb-1 drop-shadow-[0_2px_12px_rgba(0,0,0,0.35)] animate-logo-reveal"
-          />
-          <h1 className="text-3xl font-bold tracking-tight leading-tight">SbrTask</h1>
-          <p className="text-base font-light opacity-65">Laboratório Sobral</p>
+        <div className="relative z-10 flex flex-col items-center justify-center h-full gap-6 p-8 text-center text-white">
+          {/* Ícone SVG animado — identidade visual do SbrTask */}
+          <svg
+            viewBox="0 0 80 80"
+            className="w-32 h-32 animate-logo-reveal"
+            style={{ filter: 'drop-shadow(0 0 28px rgba(231,99,39,0.55))' }}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <style>{`
+                @keyframes sbt-float {
+                  0%, 100% { transform: translateY(0px); }
+                  50%       { transform: translateY(-6px); }
+                }
+                @keyframes sbt-check-draw {
+                  from { stroke-dashoffset: 52; opacity: 0; }
+                  to   { stroke-dashoffset: 0;  opacity: 1; }
+                }
+                @keyframes sbt-ring-pulse {
+                  0%, 100% { opacity: 0.65; r: 5.5; }
+                  50%       { opacity: 1;    r: 6.5; }
+                }
+                @keyframes sbt-badge-glow {
+                  0%, 100% { filter: drop-shadow(0 0 6px rgba(231,99,39,0.5)); }
+                  50%       { filter: drop-shadow(0 0 14px rgba(231,99,39,0.9)); }
+                }
+                .sbt-float {
+                  animation: sbt-float 3.2s ease-in-out infinite;
+                  transform-box: fill-box;
+                  transform-origin: center;
+                }
+                .sbt-check {
+                  stroke-dasharray: 52;
+                  stroke-dashoffset: 52;
+                  opacity: 0;
+                  animation: sbt-check-draw 0.65s 0.85s cubic-bezier(0.16,1,0.3,1) forwards;
+                }
+                .sbt-ring {
+                  animation: sbt-ring-pulse 2.1s 1.5s ease-in-out infinite;
+                }
+                .sbt-badge {
+                  animation: sbt-badge-glow 2.1s 1.5s ease-in-out infinite;
+                }
+              `}</style>
+              <linearGradient id="sbt-card" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.16)" />
+                <stop offset="100%" stopColor="rgba(255,255,255,0.04)" />
+              </linearGradient>
+            </defs>
+
+            <g className="sbt-float">
+              {/* Sombra do card */}
+              <rect x="14" y="14" width="56" height="62" rx="10" fill="rgba(0,0,0,0.38)" />
+
+              {/* Corpo do card */}
+              <rect x="12" y="10" width="56" height="62" rx="10"
+                fill="url(#sbt-card)" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+
+              {/* Faixa laranja do header */}
+              <rect x="12" y="10" width="56" height="20" rx="10" fill="rgba(231,99,39,0.38)" />
+              <rect x="12" y="22" width="56" height="8" fill="rgba(231,99,39,0.38)" />
+
+              {/* Dots de status no header */}
+              <circle cx="22" cy="20" r="2.8" fill="rgba(255,255,255,0.75)" />
+              <circle cx="30" cy="20" r="2.8" fill="rgba(255,255,255,0.45)" />
+              <circle cx="38" cy="20" r="2.8" fill="rgba(255,255,255,0.22)" />
+
+              {/* Linha divisória header/body */}
+              <line x1="12" y1="30" x2="68" y2="30" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+
+              {/* Row 1 — concluída (com check animado) */}
+              <circle className="sbt-ring sbt-badge" cx="22" cy="42" r="5.5"
+                fill="rgba(231,99,39,0.18)" stroke="rgba(231,99,39,0.8)" strokeWidth="1.6" />
+              <path className="sbt-check"
+                d="M19 42 L21.5 44.8 L26.5 38.2"
+                stroke="#e76327" strokeWidth="2.3"
+                strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              <rect x="33" y="39.5" width="26" height="5" rx="2.5" fill="rgba(255,255,255,0.38)" />
+
+              {/* Row 2 — em andamento */}
+              <circle cx="22" cy="55" r="5.5"
+                fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.28)" strokeWidth="1.4" />
+              {/* Semicírculo de progresso */}
+              <path d="M22 49.5 A5.5 5.5 0 0 1 27.5 55"
+                stroke="rgba(255,255,255,0.55)" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+              <rect x="33" y="52.5" width="20" height="5" rx="2.5" fill="rgba(255,255,255,0.22)" />
+
+              {/* Row 3 — pendente */}
+              <circle cx="22" cy="68" r="5.5"
+                fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.14)" strokeWidth="1.4" />
+              <rect x="33" y="65.5" width="14" height="5" rx="2.5" fill="rgba(255,255,255,0.12)" />
+            </g>
+          </svg>
+
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight leading-tight">SbrTask</h1>
+            <p className="mt-1 text-sm font-light opacity-50">Laboratório Sobral</p>
+          </div>
         </div>
       </div>
 
