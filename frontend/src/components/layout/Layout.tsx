@@ -50,9 +50,7 @@ const Layout: React.FC = () => {
         <div className="flex h-full flex-col">
           <div className="border-b border-[color:var(--tf-border-soft)] p-5">
             <Link to="/dashboard" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e76327]">
-                <img src="/logo115-background.svg" alt="" className="h-8 w-8 object-contain" />
-              </div>
+              <img src="/favicon.svg" alt="" className="h-10 w-10 rounded-xl" />
               <div>
                 <span className="block text-lg font-bold text-[color:var(--tf-text-main)]">SbrTasks</span>
                 <span className="text-[11px] text-[color:var(--tf-text-dim)]">
