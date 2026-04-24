@@ -77,7 +77,7 @@ const Login: React.FC = () => {
 
         {/* Conteúdo da marca */}
         <div className="relative z-10 flex flex-col items-center justify-center h-full gap-6 p-8 text-center text-white">
-          {/* Ícone SVG animado — identidade visual do SbrTask */}
+          {/* Ícone SVG animado — identidade visual do SbrTasks */}
           <svg
             viewBox="0 0 80 80"
             className="w-32 h-32 animate-logo-reveal"
@@ -171,8 +171,8 @@ const Login: React.FC = () => {
           </svg>
 
           <div>
-            <h1 className="text-3xl font-bold tracking-tight leading-tight">SbrTask</h1>
-            <p className="mt-1 text-sm font-light opacity-50">Laboratório Sobral</p>
+            <h1 className="text-3xl font-bold tracking-tight leading-tight">SbrTasks</h1>
+            <p className="mt-1 text-sm font-light opacity-50">Gerenciador de Tarefas</p>
           </div>
         </div>
       </div>

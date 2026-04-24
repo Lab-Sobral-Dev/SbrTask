@@ -1,18 +1,18 @@
 import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import { Crown } from 'lucide-react';
+import { CheckSquare } from 'lucide-react';
 
 const PublicLayout: React.FC = () => (
   <div className="tf-screen min-h-screen flex flex-col">
     <header className="tf-panel border-y-0 border-l-0 border-r-0 border-b-2 border-[color:var(--tf-border-soft)] sticky top-0 z-50 flex items-center gap-4 px-4 py-3 lg:px-8">
       <Link to="/ranking" className="flex items-center gap-3">
-        <div className="tf-frame flex h-9 w-9 items-center justify-center">
-          <Crown className="h-4 w-4 text-[color:var(--tf-primary)]" />
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#e76327]">
+          <CheckSquare className="h-4 w-4 text-white" />
         </div>
         <div>
-          <span className="tf-title block text-lg text-[color:var(--tf-text-main)]">SbrTask</span>
-          <span className="text-[10px] uppercase tracking-[0.2em] text-[color:var(--tf-text-dim)]">
-            Terminal Fantasy
+          <span className="block text-base font-bold text-[color:var(--tf-text-main)]">SbrTasks</span>
+          <span className="text-[11px] text-[color:var(--tf-text-dim)]">
+            Gerenciador de Tarefas
           </span>
         </div>
       </Link>

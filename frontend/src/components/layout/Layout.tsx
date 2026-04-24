@@ -54,7 +54,7 @@ const Layout: React.FC = () => {
                 <img src="/logo115-background.svg" alt="" className="h-8 w-8 object-contain" />
               </div>
               <div>
-                <span className="block text-lg font-bold text-[color:var(--tf-text-main)]">SbrTask</span>
+                <span className="block text-lg font-bold text-[color:var(--tf-text-main)]">SbrTasks</span>
                 <span className="text-[11px] text-[color:var(--tf-text-dim)]">
                   Laboratório Sobral
                 </span>
