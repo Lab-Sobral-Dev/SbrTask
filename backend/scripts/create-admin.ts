@@ -1,65 +1,58 @@
 import 'dotenv/config';
-import bcrypt from 'bcryptjs';
 import { PrismaClient } from '@prisma/client';
-import * as readline from 'readline';
 
 const prisma = new PrismaClient();
 
-function prompt(rl: readline.Interface, question: string): Promise<string> {
-  return new Promise((resolve) => rl.question(question, resolve));
-}
+async function promoteUser(adUsername: string) {
+  const user = await prisma.user.findUnique({ where: { adUsername } });
 
-async function main() {
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-
-  console.log('\n=== Criar Usuário Administrador ===\n');
-
-  const name = await prompt(rl, 'Nome: ');
-  const email = await prompt(rl, 'Email: ');
-  const sector = await prompt(rl, 'Setor: ');
-  const password = await prompt(rl, 'Senha: ');
-
-  rl.close();
-
-  if (!name || !email || !sector || !password) {
-    console.error('\nErro: todos os campos são obrigatórios.');
+  if (!user) {
+    console.error(`\nUsuário "${adUsername}" não encontrado no banco. Ele precisa ter feito login pelo menos uma vez via AD.\n`);
     process.exit(1);
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    if (existing.role === 'admin') {
-      console.error(`\nErro: já existe um administrador com o email "${email}".`);
-    } else {
-      const updated = await prisma.user.update({
-        where: { email },
-        data: { role: 'admin' },
-      });
-      console.log(`\nUsuário existente promovido a administrador: ${updated.name} (${updated.email})`);
-    }
-    await prisma.$disconnect();
-    return;
+  if (user.role === 'admin') {
+    console.log(`\n"${user.name}" (${adUsername}) já é admin. Nenhuma alteração.\n`);
+    return user;
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      sector,
-      password: hashedPassword,
-      role: 'admin',
-    },
+  const updated = await prisma.user.update({
+    where: { adUsername },
+    data: { role: 'admin' },
   });
 
-  console.log(`\nAdministrador criado com sucesso!`);
-  console.log(`  ID:    ${user.id}`);
-  console.log(`  Nome:  ${user.name}`);
-  console.log(`  Email: ${user.email}`);
-  console.log(`  Setor: ${user.sector}`);
-  console.log(`  Role:  ${user.role}\n`);
+  console.log(`\nPromovido: ${updated.name} (${adUsername}) → admin\n`);
+  return updated;
+}
 
+async function enforceSingleAdminInDept(adUsername: string, department: string) {
+  const demoted = await prisma.user.updateMany({
+    where: {
+      department,
+      role: 'admin',
+      NOT: { adUsername },
+    },
+    data: { role: 'dept_user' },
+  });
+
+  if (demoted.count > 0) {
+    console.log(`Rebaixados ${demoted.count} admin(s) em "${department}" — apenas "${adUsername}" mantém o papel.\n`);
+  }
+}
+
+async function main() {
+  const target = process.argv[2] ?? 'pmiranda';
+
+  console.log(`\n=== Promoção de Administrador ===`);
+  console.log(`Alvo: ${target}\n`);
+
+  const user = await promoteUser(target);
+
+  if (user.department) {
+    await enforceSingleAdminInDept(target, user.department);
+  }
+
+  console.log('Concluído.\n');
   await prisma.$disconnect();
 }
 

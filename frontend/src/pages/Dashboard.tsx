@@ -160,7 +160,7 @@ const Dashboard: React.FC = () => {
             Progresso semanal
           </h3>
           <div className="mt-4 h-64">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={256}>
               <AreaChart data={weeklyData}>
                 <defs>
                   <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
@@ -194,7 +194,7 @@ const Dashboard: React.FC = () => {
           ) : (
             <>
               <div className="mt-4 h-64">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={256}>
                   <PieChart>
                     <Pie data={statusData} cx="50%" cy="50%" innerRadius={58} outerRadius={82} paddingAngle={4} dataKey="value">
                       {statusData.map((entry, index) => (
@@ -235,7 +235,7 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <div className="mt-4 h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={256}>
                 <BarChart data={priorityData}>
                   <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                   <XAxis dataKey="name" stroke={chartTheme.axis} />
@@ -257,7 +257,7 @@ const Dashboard: React.FC = () => {
             Evolucao de XP
           </h3>
           <div className="mt-4 h-64">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={256}>
               <LineChart data={weeklyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.grid} />
                 <XAxis dataKey="day" stroke={chartTheme.axis} />
