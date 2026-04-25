@@ -23,6 +23,63 @@ CONVENCOES DO PROJETO
 
 ---
 
+ORQUESTRACAO DO FLUXO DE TRABALHO
+
+  1. Modo de Planejamento (default)
+     - Use plan mode em QUALQUER tarefa nao trivial: 3+ etapas, decisao
+       arquitetural, mudanca em area sensivel (auth, schema Prisma,
+       contrato Socket.io, build/deploy).
+     - Especificacao detalhada antecipada reduz ambiguidade — descreva
+       arquivos a tocar, contratos, criterios de verificacao.
+     - Plan mode tambem para verificacao, nao apenas para construcao.
+     - Se algo der errado durante a execucao: PARE e replaneje
+       imediatamente — nao improvise por cima do plano quebrado.
+
+  2. Estrategia de Subagentes
+     - Use subagentes liberalmente para preservar a janela de contexto.
+     - Descarregue pesquisa, exploracao de codebase e analise paralela
+       (Explore para mapear, Plan para desenhar, reviewers para auditar).
+     - Uma tarefa por subagente; prompt auto-contido com caminhos,
+       trechos relevantes e criterio de "pronto".
+     - Nao duplique trabalho que o subagente ja esta fazendo.
+
+  3. Verificacao Antes de Concluir
+     - Nunca marque "done" sem prova de que funciona: rode os testes
+       (Vitest no front), leia logs, demonstre a correcao no caso real.
+     - Pergunta-teste: "um engenheiro senior aprovaria isto em code
+       review?" — se a resposta for "talvez", ainda nao acabou.
+     - Para mudancas de UI: subir o dev server (Vite) e exercitar o
+       fluxo no browser, incluindo edge cases e regressoes vizinhas.
+     - Se nao for possivel verificar (ex.: ambiente sem dev server,
+       integracao externa indisponivel), DECLARE explicitamente o que
+       nao foi verificado em vez de fingir sucesso.
+
+  4. Exigencia de Elegancia (balanceada)
+     - Em mudancas nao triviais: pause e pergunte "existe forma mais
+       elegante?" antes de commitar.
+     - Se detectar correcao paliativa (band-aid, condicional especifico,
+       try/catch que esconde causa): re-implemente com o que voce
+       sabe agora, atacando a raiz.
+     - Pule esta etapa em correcoes obvias (typo, rename, ajuste de
+       copy) — nao super-engenhe o trivial.
+
+  5. Correcao de Bugs Autonoma
+     - Recebeu bug report: investigue e corrija; nao peca instrucoes
+       passo-a-passo ao usuario.
+     - Persiga logs, mensagens de erro, testes falhando ate a causa
+       raiz; so entao aplique a correcao.
+     - Zero troca de contexto exigida do usuario para reproduzir o que
+       voce ja consegue reproduzir sozinho.
+
+  6. Loop de Auto-aperfeicoamento
+     - Apos qualquer correcao do usuario sobre seu trabalho: registre
+       o padrao em tasks/lessons.md como regra concreta que previna
+       o mesmo erro (nao apenas o sintoma especifico).
+     - Revise tasks/lessons.md no inicio de cada sessao do projeto.
+     - Skill complementar (metodologia): .agnostic-core/skills/workflow/auto-learning-lessons.md
+
+---
+
 ANTES DE IMPLEMENTAR
 
 Backend (Express + Prisma):
@@ -134,6 +191,40 @@ GIT AUTO-PUSH WORKFLOW
   Hook script:    .agnostic-core/scripts/hooks/post-tool-use-autopush
   Configuracao:   ~/.claude/settings.json (PostToolUse -> Bash matcher)
   Comportamento:  detecta "git commit" -> push origin <branch> -> retry 1x se falhar
+
+---
+
+GERENCIAMENTO DE TAREFAS
+
+  1. Plano primeiro em tasks/todo.md, com itens marcados `[ ]`.
+  2. Verifique o plano antes de iniciar — alinhamento explicito sobre
+     escopo, arquivos tocados e criterio de "pronto".
+  3. Marque `[x]` conforme avanca, um item por vez (nada de batches).
+  4. A cada etapa concluida, deixe um resumo de alto nivel (1-3 linhas)
+     no proprio item: o que mudou e por que.
+  5. Ao final, escreva uma secao "Revisao" em tasks/todo.md com:
+     mudancas entregues, o que ficou de fora, riscos remanescentes e
+     proximos passos sugeridos.
+  6. Apos cada correcao do usuario sobre seu trabalho, atualize
+     tasks/lessons.md com a regra concreta que previne a recorrencia.
+
+---
+
+PRINCIPIOS BASICOS
+
+  Simplicidade primeiro:  busque a solucao de menor impacto que
+                          resolva o problema completo.
+  Sem paliativos:         ataque causas raiz; rejeite band-aids,
+                          condicionais ad-hoc e try/catch que escondem
+                          o problema.
+  Impacto minimo:         toque apenas no necessario; sem efeitos
+                          colaterais em areas nao relacionadas.
+  Sem over-engineering:   nao adicione features, abstracoes,
+                          flags de configuracao ou error handling
+                          que a tarefa nao pediu.
+  Honestidade tecnica:    se nao puder verificar, declare; nunca
+                          finja sucesso. "Nao testado" e uma resposta
+                          aceitavel; "funciona" sem prova nao e.
 
 ---
 
