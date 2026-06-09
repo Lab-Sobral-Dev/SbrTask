@@ -24,6 +24,10 @@ model User {
   notifications       Notification[]
   achievements        UserAchievement[]
   gameProfile         UserGameProfile?
+  githubEvents        GitHubEvent[]
+  fieldTaskSessions   FieldTaskSession[]
+  xpTransactions      XpTransaction[]
+  commissionCycles    CommissionCycle[]
 }
 
 model UserGameProfile {
@@ -96,4 +100,86 @@ model UserAchievement {
   achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
 
   @@unique([userId, achievementId])
+}
+
+model GitHubEvent {
+  id          String   @id @default(uuid())
+  userId      String
+  deliveryId  String   @unique
+  eventType   String
+  action      String?
+  repoName    String
+  refName     String?
+  commitSha   String?
+  hasDiff     Boolean  @default(false)
+  xpAwarded   Int      @default(0)
+  processedAt DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, processedAt])
+}
+
+model FieldTask {
+  id          String             @id @default(uuid())
+  name        String
+  description String?
+  category    String
+  xpBase      Int
+  slaMinutes  Int
+  active      Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  sessions    FieldTaskSession[]
+}
+
+model FieldTaskSession {
+  id            String    @id @default(uuid())
+  userId        String
+  fieldTaskId   String
+  startedAt     DateTime  @default(now())
+  stoppedAt     DateTime?
+  durationMin   Int?
+  slaStatus     String?
+  xpAwarded     Int       @default(0)
+  glpiTicketId  String?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fieldTask     FieldTask @relation(fields: [fieldTaskId], references: [id])
+
+  @@index([userId, startedAt])
+}
+
+model XpTransaction {
+  id        String   @id @default(uuid())
+  userId    String
+  amount    Int
+  reason    String
+  category  String
+  refId     String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, category])
+}
+
+model CommissionCycle {
+  id            String   @id @default(uuid())
+  userId        String
+  period        String
+  totalXp       Int
+  tier          String
+  commissionAmt Decimal  @db.Decimal(10, 2)
+  closedAt      DateTime @default(now())
+  sentToTheo    Boolean  @default(false)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, period])
+}
+
+model CommissionConfig {
+  id        String   @id @default(uuid())
+  tier      String   @unique
+  minXp     Int
+  maxXp     Int?
+  amount    Decimal  @db.Decimal(10, 2)
+  updatedAt DateTime @updatedAt
 }

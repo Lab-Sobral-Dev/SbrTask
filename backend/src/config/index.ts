@@ -10,5 +10,7 @@ export default {
   ldapBaseDn:      process.env.LDAP_BASE_DN || 'DC=labsobralnet,DC=ind',
   ldapServiceDn:   process.env.LDAP_SERVICE_DN || '',
   ldapServicePass: process.env.LDAP_SERVICE_PASS || '',
-  companyIps:      (process.env.COMPANY_IPS || '').split(',').map((ip: string) => ip.trim()).filter(Boolean),
+  companyIps:           (process.env.COMPANY_IPS || '').split(',').map((ip: string) => ip.trim()).filter(Boolean),
+  githubWebhookSecret:  process.env.GITHUB_WEBHOOK_SECRET || '',
+  entityExchangePath:   process.env.ENTITY_EXCHANGE_PATH || '',
 };
