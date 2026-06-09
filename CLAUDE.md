@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 SbrTask — Fullstack TypeScript
 
 Stack:
@@ -146,3 +150,66 @@ REGRAS CRITICAS DESTE PROJETO
   5. React 19 — preferir Server Actions / use() / form actions onde aplicavel.
   6. Tailwind 3.4 — config em tailwind.config.js (nao migrar para v4 sem alinhamento).
   7. Mobile-first — todo componente novo passa pelo responsive-breakpoint-table.md.
+  8. Tarefas de campo — rotas /api/field-tasks requerem tiOnlyMiddleware (department='ti').
+  9. XP — todo credito de XP passa por services/xp.ts#awardXp() sem excecao.
+  10. Webhooks — GITHUB_WEBHOOK_SECRET obrigatorio em producao; endpoint retorna 503 sem ele.
+
+---
+
+SISTEMA DE XP + COMISSIONAMENTO (feat/institutional-pivot)
+
+Mundos de XP:
+  MUNDO 1 — GitHub:       POST /api/webhooks/github (HMAC-SHA256, anti-farm, cap 50 XP/dia commits)
+  MUNDO 2 — Campo:        POST /api/field-tasks/:id/start + /stop (SLA: within/over_20/over_50/exceeded)
+  MUNDO 3 — Bonus:        semanal/streak — ainda nao implementado automaticamente
+  Legado:  aprovacao de Task admin ainda credita XP via taskController (nao migrado)
+
+Ledger:
+  XpTransaction — imutavel, toda XP passa por services/xp.ts#awardXp()
+  UserGameProfile.xp — total acumulado (nao usar direto; usar awardXp)
+  Level formula: xpForLevel(n) = floor(100 * n^1.5) — replicada em frontend/src/lib/xp.ts
+
+Comissionamento:
+  GET  /api/commission/current  — visao do ciclo atual (admin)
+  POST /api/commission/close    — fecha ciclo + escreve envelope em ENTITY_EXCHANGE_PATH/msgs/<uuid>.json
+  PUT  /api/commission/config   — edita faixas monetarias (bronze/silver/gold/platinum/elite)
+  Faixas XP: bronze 0-499, silver 500-999, gold 1000-1999, platinum 2000-3499, elite 3500+
+
+SSE para Token Town:
+  GET /api/xp/events — requer JWT; filtra eventos por userId; commission_cycle so para admin
+
+Painel de campo:
+  frontend/public/campo.html — standalone, sem build, mobile-first
+  Login via adUsername+senha AD; detecta API automaticamente (porta 5173 → backend :3001)
+
+---
+
+INFRAESTRUTURA LOCAL DE DEV
+
+  Banco PostgreSQL: container Docker exposto em localhost:5434 (docker-compose.override.yml)
+  Docker: sem Docker Desktop — usar Docker Engine no WSL2 Ubuntu
+    Setup: wsl -d Ubuntu -u root -- bash /mnt/c/Users/pmiranda/AppData/Local/Temp/setup-docker-wsl.sh
+    Apos setup: DOCKER_HOST=tcp://localhost:2375 no PowerShell profile
+  Migration pendente (aplicar quando Docker estiver up):
+    cd backend && npx prisma migrate dev --name feat_xp_commission_system
+
+---
+
+SERVIDORES E ACESSOS
+
+  Producao (Zion VPS): 191.101.18.82 — containers sbrtask-backend, sbrtask-frontend, postgres
+  AD / LDAP: 192.86.221.218 (alias LABSOBRAL em ~/.ssh/config)
+    SSH: ssh sobral@192.86.221.218  |  sudo: Acesso06597
+    Ocomon PHP legado (MySQL): /var/www/html/ocomon-5.0 | user: ocomon_5
+  Grafana + Portainer: tambem no .214
+
+  Mapeamento OU→department (ldap.ts): OU=TI e OU=Administradores → 'ti'
+  Campo email→adUsername: prefixo antes de @ (convencao, sem bridge table hoje)
+
+---
+
+INTEGRACAO ENTITY-EXCHANGE (THEO)
+
+  SbrTask escreve JSON em $ENTITY_EXCHANGE_PATH/msgs/<uuid>.json ao fechar ciclo.
+  Formato: { de, para, tipo, assunto, corpo: { periodo, tecnicos[] } }
+  THEO le no proximo tick (~60s) e processa logica financeira.
