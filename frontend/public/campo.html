@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SbrTask — Tarefas de Campo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f172a;
+      --surface:  #1e293b;
+      --border:   #334155;
+      --primary:  #6366f1;
+      --primary2: #818cf8;
+      --success:  #22c55e;
+      --warn:     #f59e0b;
+      --danger:   #ef4444;
+      --text:     #f1f5f9;
+      --muted:    #94a3b8;
+      --radius:   14px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header svg { flex-shrink: 0; }
+    header h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: -.3px; }
+    header .user-name { margin-left: auto; font-size: .8rem; color: var(--muted); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    header .logout-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: .75rem; padding: 4px 8px; border-radius: 6px; }
+    header .logout-btn:active { background: var(--border); }
+
+    /* ── Screens ── */
+    .screen { display: none; flex: 1; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* ── Login ── */
+    #screen-login {
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      gap: 24px;
+    }
+    .login-logo { text-align: center; }
+    .login-logo svg { opacity: .9; }
+    .login-logo p { color: var(--muted); font-size: .85rem; margin-top: 6px; }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .login-card h2 { font-size: 1rem; font-weight: 600; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: .8rem; color: var(--muted); font-weight: 500; }
+    .field input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color .15s;
+      -webkit-appearance: none;
+    }
+    .field input:focus { border-color: var(--primary); }
+    .error-msg { color: var(--danger); font-size: .82rem; min-height: 18px; }
+
+    /* ── Buttons ── */
+    .btn {
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 14px;
+      text-align: center;
+      transition: opacity .15s, transform .1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { opacity: .82; transform: scale(.98); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
+    .btn-ghost   { background: var(--border);  color: var(--text); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+    /* ── Task list ── */
+    #screen-list { padding: 16px; gap: 12px; overflow-y: auto; }
+    #screen-list h2 { font-size: .9rem; color: var(--muted); font-weight: 500; }
+    .task-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .task-card .task-name { font-size: 1rem; font-weight: 600; line-height: 1.3; }
+    .task-card .task-desc { font-size: .82rem; color: var(--muted); line-height: 1.4; }
+    .task-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      border-radius: 6px;
+      font-size: .75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+    }
+    .badge-xp  { background: #312e81; color: var(--primary2); }
+    .badge-sla { background: #14532d; color: #86efac; }
+    .badge-cat { background: var(--border); color: var(--muted); }
+    .task-card .btn { margin-top: 2px; }
+
+    /* ── Active task screen ── */
+    #screen-active {
+      justify-content: space-between;
+      padding: 24px 16px;
+      gap: 16px;
+    }
+    .active-info {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .active-info .label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+    .active-info .task-name-big { font-size: 1.2rem; font-weight: 700; line-height: 1.3; }
+    .timer-wrap { text-align: center; padding: 24px 0; }
+    .timer {
+      font-size: 3.8rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+    .timer.warning { color: var(--warn); }
+    .timer.exceeded { color: var(--danger); }
+    .timer-sla { font-size: .82rem; color: var(--muted); margin-top: 6px; }
+    .stop-area { display: flex; flex-direction: column; gap: 10px; }
+
+    /* ── Result screen ── */
+    #screen-result {
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      gap: 20px;
+      text-align: center;
+    }
+    .result-icon { font-size: 4rem; }
+    .result-xp { font-size: 2.4rem; font-weight: 800; color: var(--primary2); }
+    .result-status {
+      font-size: .9rem;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+    .status-within   { background: #14532d; color: #86efac; }
+    .status-over_20  { background: #713f12; color: #fde68a; }
+    .status-over_50  { background: #7c2d12; color: #fed7aa; }
+    .status-exceeded { background: #450a0a; color: #fca5a5; }
+    .result-detail { color: var(--muted); font-size: .85rem; line-height: 1.5; }
+
+    /* ── Loading spinner ── */
+    .spinner {
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      animation: spin .7s linear infinite;
+      margin: 40px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty { text-align: center; color: var(--muted); font-size: .9rem; padding: 40px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+    <rect width="32" height="32" rx="8" fill="#6366f1"/>
+    <path d="M9 16.5L13.5 21L23 11" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <h1>Tarefas de Campo</h1>
+  <span class="user-name" id="hdr-name"></span>
+  <button class="logout-btn" onclick="logout()">Sair</button>
+</header>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-logo">
+    <svg width="56" height="56" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="8" fill="#6366f1"/>
+      <path d="M9 16.5L13.5 21L23 11" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <p>SbrTask · Equipe TI</p>
+  </div>
+  <div class="login-card">
+    <h2>Entrar</h2>
+    <div class="field">
+      <label for="inp-user">Usuário (AD)</label>
+      <input id="inp-user" type="text" placeholder="joao.silva" autocapitalize="none" autocorrect="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="inp-pass">Senha</label>
+      <input id="inp-pass" type="password" placeholder="••••••••">
+    </div>
+    <div class="error-msg" id="login-error"></div>
+    <button class="btn btn-primary" id="btn-login" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- TASK LIST -->
+<div id="screen-list" class="screen">
+  <h2>Selecione uma tarefa</h2>
+  <div id="task-list-body"></div>
+</div>
+
+<!-- ACTIVE TASK -->
+<div id="screen-active" class="screen">
+  <div class="active-info">
+    <span class="label">Em execução</span>
+    <div class="task-name-big" id="active-name"></div>
+    <div class="task-meta" id="active-meta"></div>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer" id="timer-display">00:00</div>
+    <div class="timer-sla" id="timer-sla-label"></div>
+  </div>
+  <div class="stop-area">
+    <button class="btn btn-danger" id="btn-stop" onclick="doStop()">Parar e registrar</button>
+    <button class="btn btn-ghost" onclick="showList()">Cancelar (não registra XP)</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="screen-result" class="screen">
+  <div class="result-icon" id="result-icon">🎯</div>
+  <div class="result-xp" id="result-xp"></div>
+  <div class="result-status" id="result-status"></div>
+  <div class="result-detail" id="result-detail"></div>
+  <button class="btn btn-primary" style="width:100%;max-width:320px" onclick="showList()">Nova tarefa</button>
+</div>
+
+<script>
+  // ── Config ──────────────────────────────────────────────────
+  const API = (() => {
+    const { protocol, hostname, port } = window.location;
+    // dev: frontend on :5173, backend on :3001
+    const base = (port === '5173') ? `${protocol}//${hostname}:3001` : '';
+    return base + '/api';
+  })();
+
+  // ── State ────────────────────────────────────────────────────
+  let token = localStorage.getItem('campo_token') || '';
+  let currentUser = JSON.parse(localStorage.getItem('campo_user') || 'null');
+  let tasks = [];
+  let activeSession = null;  // { taskId, sessionId, task, startedAt }
+  let timerInterval = null;
+
+  // ── Boot ─────────────────────────────────────────────────────
+  if (token && currentUser) {
+    initAuthed();
+  }
+
+  // ── Screens ──────────────────────────────────────────────────
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    document.getElementById('hdr-name').textContent = currentUser ? currentUser.name.split(' ')[0] : '';
+  }
+
+  function showList() {
+    clearTimer();
+    activeSession = null;
+    show('list');
+    renderTasks();
+  }
+
+  // ── Login ─────────────────────────────────────────────────────
+  async function doLogin() {
+    const username = document.getElementById('inp-user').value.trim();
+    const password = document.getElementById('inp-pass').value;
+    const errEl    = document.getElementById('login-error');
+    const btn      = document.getElementById('btn-login');
+
+    errEl.textContent = '';
+    if (!username || !password) { errEl.textContent = 'Preencha usuário e senha.'; return; }
+
+    btn.disabled = true;
+    btn.textContent = 'Entrando…';
+    try {
+      const r = await api('POST', '/auth/login', { username, password });
+      token = r.token;
+      currentUser = r.user;
+      localStorage.setItem('campo_token', token);
+      localStorage.setItem('campo_user', JSON.stringify(currentUser));
+      document.getElementById('inp-pass').value = '';
+      initAuthed();
+    } catch(e) {
+      errEl.textContent = e.message || 'Erro ao autenticar.';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    }
+  }
+
+  document.getElementById('inp-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+
+  function logout() {
+    token = '';
+    currentUser = null;
+    tasks = [];
+    localStorage.removeItem('campo_token');
+    localStorage.removeItem('campo_user');
+    clearTimer();
+    activeSession = null;
+    show('login');
+  }
+
+  async function initAuthed() {
+    show('list');
+    await loadTasks();
+  }
+
+  // ── Tasks ─────────────────────────────────────────────────────
+  async function loadTasks() {
+    const body = document.getElementById('task-list-body');
+    body.innerHTML = '<div class="spinner"></div>';
+    try {
+      tasks = await api('GET', '/field-tasks');
+      renderTasks();
+    } catch(e) {
+      body.innerHTML = `<div class="empty">${e.message}</div>`;
+    }
+  }
+
+  function fmtSla(min) {
+    if (min < 60) return min + ' min';
+    const h = Math.floor(min / 60), m = min % 60;
+    return m ? `${h}h ${m}min` : `${h}h`;
+  }
+
+  function renderTasks() {
+    const body = document.getElementById('task-list-body');
+    if (!tasks.length) { body.innerHTML = '<div class="empty">Nenhuma tarefa disponível.</div>'; return; }
+
+    body.innerHTML = tasks.map(t => `
+      <div class="task-card">
+        <div class="task-name">${esc(t.name)}</div>
+        ${t.description ? `<div class="task-desc">${esc(t.description)}</div>` : ''}
+        <div class="task-meta">
+          <span class="badge badge-xp">⚡ ${t.xpBase} XP</span>
+          <span class="badge badge-sla">⏱ SLA ${fmtSla(t.slaMinutes)}</span>
+          <span class="badge badge-cat">${esc(t.category)}</span>
+        </div>
+        <button class="btn btn-primary" onclick="doStart('${t.id}')">Iniciar</button>
+      </div>
+    `).join('');
+  }
+
+  // ── Start ─────────────────────────────────────────────────────
+  async function doStart(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Iniciando…';
+    try {
+      const session = await api('POST', `/field-tasks/${taskId}/start`);
+      activeSession = { taskId, sessionId: session.id, task, startedAt: new Date(session.startedAt) };
+      showActive();
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = 'Iniciar';
+      alert(e.message);
+    }
+  }
+
+  function showActive() {
+    const { task } = activeSession;
+    document.getElementById('active-name').textContent = task.name;
+    document.getElementById('active-meta').innerHTML = `
+      <span class="badge badge-xp">⚡ ${task.xpBase} XP base</span>
+      <span class="badge badge-sla">⏱ SLA ${fmtSla(task.slaMinutes)}</span>
+    `;
+    document.getElementById('timer-sla-label').textContent = `SLA: ${fmtSla(task.slaMinutes)}`;
+    show('active');
+    startTimer();
+  }
+
+  // ── Timer ─────────────────────────────────────────────────────
+  function startTimer() {
+    clearTimer();
+    timerInterval = setInterval(tickTimer, 1000);
+    tickTimer();
+  }
+
+  function clearTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
+
+  function tickTimer() {
+    if (!activeSession) return;
+    const elapsed = Math.floor((Date.now() - activeSession.startedAt.getTime()) / 1000);
+    const mins    = Math.floor(elapsed / 60);
+    const secs    = elapsed % 60;
+    const label   = String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+    const el      = document.getElementById('timer-display');
+    el.textContent = label;
+
+    const slaMs   = activeSession.task.slaMinutes * 60;
+    const ratio   = elapsed / slaMs;
+    el.className  = 'timer' + (ratio > 1.5 ? ' exceeded' : ratio > 1.0 ? ' warning' : '');
+  }
+
+  // ── Stop ──────────────────────────────────────────────────────
+  async function doStop() {
+    if (!activeSession) return;
+    const btn = document.getElementById('btn-stop');
+    btn.disabled = true;
+    btn.textContent = 'Registrando…';
+    clearTimer();
+    try {
+      const r = await api('POST', `/field-tasks/${activeSession.taskId}/stop`);
+      showResult(r);
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = 'Parar e registrar';
+      alert(e.message);
+    }
+  }
+
+  const SLA_LABELS = {
+    within:   { text: 'Dentro do SLA ✓', cls: 'status-within',   icon: '🎯' },
+    over_20:  { text: 'SLA excedido 20%', cls: 'status-over_20',  icon: '⚠️' },
+    over_50:  { text: 'SLA excedido 50%', cls: 'status-over_50',  icon: '🔶' },
+    exceeded: { text: 'Fora do SLA',      cls: 'status-exceeded', icon: '🚫' },
+  };
+
+  function showResult(r) {
+    const info = SLA_LABELS[r.slaStatus] || SLA_LABELS.exceeded;
+    const xp   = r.xpAwarded;
+
+    document.getElementById('result-icon').textContent = info.icon;
+    document.getElementById('result-xp').textContent   = xp > 0 ? `+${xp} XP` : '0 XP';
+
+    const statusEl = document.getElementById('result-status');
+    statusEl.textContent = info.text;
+    statusEl.className   = 'result-status ' + info.cls;
+
+    const mins = r.durationMin;
+    const sla  = activeSession?.task?.slaMinutes ?? 0;
+    document.getElementById('result-detail').textContent =
+      `Duração: ${fmtSla(mins)} · SLA: ${fmtSla(sla)}`;
+
+    activeSession = null;
+    show('result');
+  }
+
+  // ── API helper ────────────────────────────────────────────────
+  async function api(method, path, body) {
+    const opts = {
+      method,
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch(API + path, opts);
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (res.status === 401) logout();
+      throw new Error(json.error || `Erro ${res.status}`);
+    }
+    return json;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

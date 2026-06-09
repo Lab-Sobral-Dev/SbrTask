@@ -42,12 +42,14 @@ export const handleGithubWebhook = async (req: Request & { rawBody?: Buffer }, r
     return;
   }
 
-  if (config.githubWebhookSecret) {
-    const raw = req.rawBody ?? Buffer.from(JSON.stringify(req.body));
-    if (!verifySignature(raw, sig)) {
-      res.status(401).json({ error: 'Invalid signature' });
-      return;
-    }
+  if (!config.githubWebhookSecret) {
+    res.status(503).json({ error: 'Webhook secret not configured' });
+    return;
+  }
+  const raw = req.rawBody;
+  if (!raw || !verifySignature(raw, sig)) {
+    res.status(401).json({ error: 'Invalid signature' });
+    return;
   }
 
   // dedup
