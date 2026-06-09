@@ -39,7 +39,7 @@ export const login = async (req: Request, res: Response) => {
     } else {
       user = await prisma.user.update({
         where: { id: user.id },
-        data:  { name: adUser.displayName, email, lastLoginAt: new Date() },
+        data:  { name: adUser.displayName, email, department: adUser.departmentSlug, lastLoginAt: new Date() },
       });
     }
 
