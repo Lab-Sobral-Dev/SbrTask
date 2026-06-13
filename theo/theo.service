@@ -1,0 +1,18 @@
+[Unit]
+Description=T.H.E.O. — Tracking Human Exchange Operations
+After=network.target
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=/opt/labsrv-theo
+EnvironmentFile=/etc/labsrv-theo.env
+ExecStart=/opt/labsrv-theo/venv/bin/python -m theo.main
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=theo
+
+[Install]
+WantedBy=multi-user.target
