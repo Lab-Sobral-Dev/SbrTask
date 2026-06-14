@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Ecossistema & contratos (fonte de verdade):** SbrTask é uma *província* da Matrix do Lab Sobral. Arquitetura do ecossistema, entidades, territórios e ADRs vivem em **THE-MATRIX** (`github.com/paulinett1508-dev/the-matrix` · local `C:\THEMATRIX\nucleo\THE-MATRIX`). Contratos de troca tipados = **@matrix/core** (`github.com/paulinett1508-dev/matrix-core`); este repo consome `EnvelopeComissao` (fechamento de ciclo → THEO). Não redocumentar o ecossistema aqui — linkar pra lá. (ADR-001: federação, não anexação.)
+
 SbrTask — Fullstack TypeScript
 
 Stack:
