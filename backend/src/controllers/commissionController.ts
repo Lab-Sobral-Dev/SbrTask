@@ -6,6 +6,7 @@ import prisma from '../config/prisma';
 import config from '../config';
 import { AuthRequest } from '../middlewares/auth';
 import { getIo } from '../socket';
+import { EnvelopeComissao } from '@matrix/core';
 
 function periodLabel(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
@@ -96,20 +97,22 @@ export const closeCycle = async (req: AuthRequest, res: Response): Promise<void>
   );
 
   // write entity-exchange envelope
-  const technicians = await Promise.all(
+  const technicians = (await Promise.all(
     cycles.map(async c => {
       const user = await prisma.user.findUnique({ where: { id: c.userId }, select: { adUsername: true, name: true } });
-      return { adUsername: user?.adUsername, name: user?.name, xp: c.totalXp, tier: c.tier, commissionAmt: Number(c.commissionAmt) };
+      if (!user?.adUsername) return null; // sem AD username não é comissionável p/ o THEO
+      return { adUsername: user.adUsername, name: user.name ?? user.adUsername, xp: c.totalXp, tier: c.tier, commissionAmt: Number(c.commissionAmt) };
     })
-  );
+  )).filter((t): t is NonNullable<typeof t> => t !== null);
 
-  const envelope = {
+  // valida contra o contrato canônico (matrix-core); drift quebra aqui antes de chegar ao THEO
+  const envelope = EnvelopeComissao.parse({
     de: 'sbrtask',
     para: 'theo',
     tipo: 'comissionamento_ciclo',
     assunto: `Fechamento XP mensal equipe TI`,
     corpo: { periodo: period, tecnicos: technicians },
-  };
+  });
 
   const exchangePath = config.entityExchangePath;
   if (exchangePath) {
