@@ -13,4 +13,5 @@ export default {
   companyIps:           (process.env.COMPANY_IPS || '').split(',').map((ip: string) => ip.trim()).filter(Boolean),
   githubWebhookSecret:  process.env.GITHUB_WEBHOOK_SECRET || '',
   entityExchangePath:   process.env.ENTITY_EXCHANGE_PATH || '',
+  telegramBotToken:     process.env.TELEGRAM_BOT_TOKEN || '',
 };

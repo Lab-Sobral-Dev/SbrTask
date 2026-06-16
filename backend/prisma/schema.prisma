@@ -16,6 +16,7 @@ model User {
   role                String            @default("dept_user")
   active              Boolean           @default(true)
   allowRemoteAccess   Boolean           @default(false)
+  telegramChatId      String?
   lastLoginAt         DateTime?
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import prisma from '../config/prisma';
 import { awardXp, xpTodayByCategory } from '../services/xp';
+import { sendTelegramMessage } from '../services/telegram';
 import config from '../config';
 
 const CONVENTIONAL_RE = /^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert)(\(.+\))?!?: .+/;
@@ -18,6 +19,15 @@ function verifySignature(body: Buffer, signature: string): boolean {
   } catch {
     return false;
   }
+}
+
+async function notifyXp(userId: string, amount: number, reason: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { telegramChatId: true, name: true, gameProfile: { select: { xp: true, level: true } } } });
+  if (!user?.telegramChatId) return;
+  const xp = user.gameProfile?.xp ?? 0;
+  const level = user.gameProfile?.level ?? 1;
+  const text = `⚡ <b>+${amount} XP</b> — ${reason}\nTotal: ${xp} XP · Nível ${level}`;
+  await sendTelegramMessage(user.telegramChatId, text);
 }
 
 async function findUser(email?: string, login?: string) {
@@ -105,6 +115,7 @@ async function handlePush(deliveryId: string, payload: any) {
     });
     if (xpAmount > 0) {
       await awardXp({ userId: user.id, amount: xpAmount, reason: `Branch criada: ${branchName}`, category: 'github', refId: deliveryId });
+      await notifyXp(user.id, xpAmount, `Branch criada: ${branchName}`);
     }
     return;
   }
@@ -131,7 +142,9 @@ async function handlePush(deliveryId: string, payload: any) {
     }).catch(() => {}); // ignore unique violations on re-delivery
 
     if (xpAmount > 0) {
-      await awardXp({ userId: user.id, amount: xpAmount, reason: `Commit: ${String(commit.message).slice(0, 72)}`, category: 'github', refId: commit.id });
+      const commitReason = `Commit: ${String(commit.message).slice(0, 72)}`;
+      await awardXp({ userId: user.id, amount: xpAmount, reason: commitReason, category: 'github', refId: commit.id });
+      await notifyXp(user.id, xpAmount, commitReason);
     }
   }
 }
@@ -166,6 +179,7 @@ async function handlePullRequest(deliveryId: string, payload: any) {
 
   if (xpAmount > 0) {
     await awardXp({ userId: user.id, amount: xpAmount, reason, category: 'github', refId: deliveryId });
+    await notifyXp(user.id, xpAmount, reason);
   }
 }
 
@@ -188,5 +202,7 @@ async function handleIssues(deliveryId: string, payload: any) {
     },
   });
 
-  await awardXp({ userId: user.id, amount: 25, reason: `Issue fechada: #${issue?.number}`, category: 'github', refId: deliveryId });
+  const issueReason = `Issue fechada: #${issue?.number}`;
+  await awardXp({ userId: user.id, amount: 25, reason: issueReason, category: 'github', refId: deliveryId });
+  await notifyXp(user.id, 25, issueReason);
 }
