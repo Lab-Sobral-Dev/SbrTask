@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> **Ecossistema & contratos (fonte de verdade):** SbrTask é uma *província* da Matrix do Lab Sobral. Arquitetura do ecossistema, entidades, territórios e ADRs vivem em **THE-MATRIX** (`github.com/paulinett1508-dev/the-matrix` · local `C:\THEMATRIX\nucleo\THE-MATRIX`). Contratos de troca tipados = **@matrix/core** (`github.com/paulinett1508-dev/matrix-core`); este repo consome `EnvelopeComissao` (fechamento de ciclo → THEO). Não redocumentar o ecossistema aqui — linkar pra lá. (ADR-001: federação, não anexação.)
+> **Ecossistema & contratos (fonte de verdade):** SbrTask é um satélite da constelação **Amilcar** do Lab Sobral (ex-Matrix — rename concluído 2026-06-26, ver `HANDOFF.md` no repo central). Arquitetura do ecossistema, entidades, territórios e ADRs vivem em **Amilcar-Constellation** (`github.com/paulinett1508-dev/Amilcar-Constellation` · local `C:\AMILCAR-CONSTELATTION\nucleo\AMILCARCONSTELATTION`). Contratos de troca tipados = **@amilcar/core** (`github.com/paulinett1508-dev/amilcar-core`, ex-matrix-core); este repo consome `EnvelopeComissao` (fechamento de ciclo → THEO). Não redocumentar o ecossistema aqui — linkar pra lá. (ADR-001: federação, não anexação.) **Antes de concluir que uma decisão de identidade/nome/arquitetura da constelação não existe, consulte o Amilcar-Constellation primeiro** — decisões desse escopo vivem lá, não são replicadas neste repo.
 
 SbrTask — Fullstack TypeScript
 
