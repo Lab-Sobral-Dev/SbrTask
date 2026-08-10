@@ -1,0 +1,49 @@
+# Skills do agnostic-core espelhadas em .claude/skills/.
+# Um padrão por linha. '!' exclui. '*' casa dentro de uma categoria.
+# Gerado por install.sh a partir do stack detectado — edite à vontade.
+# O acervo completo continua disponível em .agnostic-core/skills/;
+# esta lista controla só o que é pré-carregado em toda sessão.
+
+# --- núcleo (independe de stack) ---
+behavioral/*
+workflow/*
+git/*
+audit/code-review
+audit/systematic-debugging
+audit/pre-implementation
+audit/senior-verification-protocol
+documentation/technical-docs
+
+# --- frontend (backend/ + frontend/ são monorepo, detecção automática
+# só olha package.json na raiz — ajustado à mão pro stack real) ---
+frontend/accessibility
+frontend/html-css-audit
+frontend/css-governance
+frontend/ux-guidelines
+frontend/seo-checklist
+frontend/react-performance
+frontend/react-task-checklists
+frontend/tailwind-patterns
+frontend/anti-frankenstein
+frontend/dark-mode-tokens
+ux-ui/*
+design/sem-cara-de-ia
+
+# --- backend ---
+backend/rest-api-design
+backend/error-handling
+security/api-hardening
+security/owasp-checklist
+performance/performance-audit
+nodejs/*
+
+# --- banco de dados (Prisma) ---
+database/*
+
+# --- testes (Vitest) ---
+testing/*
+
+# --- devops / plataforma ---
+devops/deploy-procedures
+devops/pre-deploy-checklist
+devops/containerizacao
