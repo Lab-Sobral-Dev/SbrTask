@@ -3,6 +3,7 @@ import prisma from '../config/prisma';
 import { AuthRequest } from '../middlewares/auth';
 import { getIo } from '../socket';
 import { checkAchievements } from './achievementController';
+import { checklistSubmissionSchema } from '../validators/taskChecklist';
 
 const assignmentInclude = {
   user: { select: { id: true, name: true, department: true } },
@@ -38,7 +39,7 @@ const sendNotification = async (
 export const createTask = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest;
-    const { title, description, priority, dueDate, category, xpReward, assigneeIds } =
+    const { title, description, priority, dueDate, category, xpReward, assigneeIds, checklist } =
       req.body as {
         title: string;
         description?: string;
@@ -47,10 +48,16 @@ export const createTask = async (req: Request, res: Response) => {
         category?: string;
         xpReward: number;
         assigneeIds: string[];
+        checklist: unknown;
       };
 
     if (!Array.isArray(assigneeIds) || assigneeIds.length === 0) {
       return res.status(400).json({ error: 'assigneeIds deve ser um array não vazio' });
+    }
+
+    const parsedChecklist = checklistSubmissionSchema.safeParse(checklist);
+    if (!parsedChecklist.success) {
+      return res.status(400).json({ error: 'checklist inválido', details: parsedChecklist.error.issues });
     }
 
     const task = await prisma.task.create({
@@ -62,16 +69,23 @@ export const createTask = async (req: Request, res: Response) => {
         category,
         xpReward,
         createdBy: authReq.userId!,
+        approvalStatus: 'pending_approval',
         assignments: {
           create: assigneeIds.map((uid) => ({ userId: uid })),
         },
+        checklistItems: {
+          create: parsedChecklist.data.map((item) => ({
+            key: item.key,
+            itemStatus: item.itemStatus,
+            justification: item.justification ?? null,
+          })),
+        },
       },
-      include: taskInclude,
+      include: { ...taskInclude, checklistItems: true },
     });
 
-    for (const uid of assigneeIds) {
-      await sendNotification(uid, 'task_assigned', `Nova tarefa atribuída: ${title}`, task.id);
-    }
+    // Nota: notificação de atribuição (task_assigned) só é enviada na aprovação
+    // (ver approveTask, Task 5) — a task não é visível pro assignee antes disso.
 
     res.status(201).json(task);
   } catch (error) {
