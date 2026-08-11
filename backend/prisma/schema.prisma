@@ -8,27 +8,27 @@ datasource db {
 }
 
 model User {
-  id                  String            @id @default(uuid())
-  adUsername          String            @unique
-  email               String?
-  name                String
-  department          String?
-  role                String            @default("dept_user")
-  active              Boolean           @default(true)
-  allowRemoteAccess   Boolean           @default(false)
-  telegramChatId      String?
-  lastLoginAt         DateTime?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  createdTasks        Task[]            @relation("TaskCreator")
-  assignments         TaskAssignment[]
-  notifications       Notification[]
-  achievements        UserAchievement[]
-  gameProfile         UserGameProfile?
-  githubEvents        GitHubEvent[]
-  fieldTaskSessions   FieldTaskSession[]
-  xpTransactions      XpTransaction[]
-  commissionCycles    CommissionCycle[]
+  id                String             @id @default(uuid())
+  adUsername        String             @unique
+  email             String?
+  name              String
+  department        String?
+  role              String             @default("dept_user")
+  active            Boolean            @default(true)
+  allowRemoteAccess Boolean            @default(false)
+  telegramChatId    String?
+  lastLoginAt       DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  createdTasks      Task[]             @relation("TaskCreator")
+  assignments       TaskAssignment[]
+  notifications     Notification[]
+  achievements      UserAchievement[]
+  gameProfile       UserGameProfile?
+  githubEvents      GitHubEvent[]
+  fieldTaskSessions FieldTaskSession[]
+  xpTransactions    XpTransaction[]
+  commissionCycles  CommissionCycle[]
 }
 
 model UserGameProfile {
@@ -41,19 +41,22 @@ model UserGameProfile {
 }
 
 model Task {
-  id          String           @id @default(uuid())
-  title       String
-  description String?
-  priority    String           @default("medium")
-  status      String           @default("active")
-  dueDate     DateTime?
-  category    String?
-  xpReward    Int              @default(10)
-  createdBy   String
-  creator     User             @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
-  assignments TaskAssignment[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id              String              @id @default(uuid())
+  title           String
+  description     String?
+  priority        String              @default("medium")
+  status          String              @default("active")
+  dueDate         DateTime?
+  category        String?
+  xpReward        Int                 @default(10)
+  createdBy       String
+  creator         User                @relation("TaskCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  assignments     TaskAssignment[]
+  approvalStatus  String              @default("pending_approval")
+  rejectionReason String?
+  checklistItems  TaskChecklistItem[]
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 }
 
 model TaskAssignment {
@@ -68,6 +71,19 @@ model TaskAssignment {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([taskId, userId])
+}
+
+model TaskChecklistItem {
+  id            String   @id @default(uuid())
+  taskId        String
+  key           String
+  itemStatus    String   @default("pending")
+  justification String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  task          Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, key])
 }
 
 model Notification {
@@ -133,17 +149,17 @@ model FieldTask {
 }
 
 model FieldTaskSession {
-  id            String    @id @default(uuid())
-  userId        String
-  fieldTaskId   String
-  startedAt     DateTime  @default(now())
-  stoppedAt     DateTime?
-  durationMin   Int?
-  slaStatus     String?
-  xpAwarded     Int       @default(0)
-  glpiTicketId  String?
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fieldTask     FieldTask @relation(fields: [fieldTaskId], references: [id])
+  id           String    @id @default(uuid())
+  userId       String
+  fieldTaskId  String
+  startedAt    DateTime  @default(now())
+  stoppedAt    DateTime?
+  durationMin  Int?
+  slaStatus    String?
+  xpAwarded    Int       @default(0)
+  glpiTicketId String?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fieldTask    FieldTask @relation(fields: [fieldTaskId], references: [id])
 
   @@index([userId, startedAt])
 }
