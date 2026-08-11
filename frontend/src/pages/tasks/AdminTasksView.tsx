@@ -15,6 +15,8 @@ import {
   Zap,
 } from 'lucide-react';
 import { tasks, users } from '../../services/api';
+import TaskChecklistForm from '../../components/tasks/TaskChecklistForm';
+import { emptyChecklistValue, type ChecklistItemValue } from '../../lib/taskChecklist';
 
 const adminTaskSchema = z.object({
   title: z.string().min(1, 'Título obrigatório'),
@@ -60,6 +62,7 @@ const AdminTasksView: React.FC = () => {
   const [editingTask, setEditingTask] = useState<any>(null);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [checklist, setChecklist] = useState<ChecklistItemValue[]>(emptyChecklistValue());
 
   const { data: taskData, isLoading } = useQuery({
     queryKey: ['tasks'],
@@ -88,11 +91,12 @@ const AdminTasksView: React.FC = () => {
   const selectedAssignees = watch('assigneeIds') ?? [];
 
   const createMutation = useMutation({
-    mutationFn: (data: AdminTaskForm) => tasks.create(data),
+    mutationFn: (data: AdminTaskForm & { checklist: ChecklistItemValue[] }) => tasks.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       setShowModal(false);
       reset();
+      setChecklist(emptyChecklistValue());
     },
   });
 
@@ -120,7 +124,7 @@ const AdminTasksView: React.FC = () => {
     if (editingTask) {
       updateMutation.mutate({ id: editingTask.id, data });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate({ ...data, checklist });
     }
   };
 
@@ -141,6 +145,7 @@ const AdminTasksView: React.FC = () => {
   const openCreate = () => {
     setEditingTask(null);
     reset({ priority: 'medium', xpReward: 25, assigneeIds: [] });
+    setChecklist(emptyChecklistValue());
     setShowModal(true);
   };
 
@@ -376,6 +381,12 @@ const AdminTasksView: React.FC = () => {
                   <p className="mt-1 text-xs text-[color:var(--tf-danger)]">{errors.assigneeIds.message}</p>
                 )}
               </div>
+              {!editingTask && (
+                <div>
+                  <label className="tf-label">Checklist pré-implementação</label>
+                  <TaskChecklistForm value={checklist} onChange={setChecklist} />
+                </div>
+              )}
               <div className="flex justify-end gap-3 pt-3">
                 <button
                   type="button"

@@ -63,6 +63,7 @@ export const tasks = {
     category?: string;
     xpReward: number;
     assigneeIds: string[];
+    checklist: { key: string; itemStatus: string; justification?: string }[];
   }) => api.post('/tasks', data),
 
   update: (
