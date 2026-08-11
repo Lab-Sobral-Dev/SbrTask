@@ -562,3 +562,51 @@ export const rejectTask = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Erro ao rejeitar tarefa' });
   }
 };
+
+// PATCH /tasks/:id/checklist — admin atualiza checklist items de uma tarefa rejeitada
+export const updateChecklist = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id as string;
+    const parsed = checklistSubmissionSchema.safeParse(req.body.checklist);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'checklist inválido', details: parsed.error.issues });
+    }
+
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+
+    for (const item of parsed.data) {
+      await prisma.taskChecklistItem.update({
+        where: { taskId_key: { taskId, key: item.key } },
+        data: { itemStatus: item.itemStatus, justification: item.justification ?? null },
+      });
+    }
+
+    res.json({ message: 'Checklist atualizado' });
+  } catch (error) {
+    console.error('Erro ao atualizar checklist:', error);
+    res.status(500).json({ error: 'Erro ao atualizar checklist' });
+  }
+};
+
+// POST /tasks/:id/resubmit — reenviar tarefa rejeitada de volta para pending_approval
+export const resubmitTask = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id as string;
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+    if (task.approvalStatus !== 'rejected') {
+      return res.status(400).json({ error: 'Tarefa não está rejeitada' });
+    }
+
+    await prisma.task.update({
+      where: { id: taskId },
+      data: { approvalStatus: 'pending_approval', rejectionReason: null },
+    });
+
+    res.json({ approvalStatus: 'pending_approval' });
+  } catch (error) {
+    console.error('Erro ao reenviar tarefa:', error);
+    res.status(500).json({ error: 'Erro ao reenviar tarefa' });
+  }
+};
