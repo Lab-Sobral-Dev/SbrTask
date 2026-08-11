@@ -1,5 +1,11 @@
+import { Prisma, PrismaClient } from '@prisma/client';
 import prisma from '../config/prisma';
 import { getIo } from '../socket';
+
+// Aceita tanto o client top-level quanto um client de dentro de prisma.$transaction(),
+// para permitir que chamadores componham awardXp() numa transação atômica maior
+// (ex.: taskController#approveTask) sem duplicar a lógica de crédito de XP.
+type Db = PrismaClient | Prisma.TransactionClient;
 
 const xpForLevel = (level: number) => Math.floor(100 * Math.pow(level, 1.5));
 
@@ -14,20 +20,23 @@ function calcLevel(totalXp: number): number {
   return level;
 }
 
-export async function awardXp(params: {
-  userId: string;
-  amount: number;
-  reason: string;
-  category: string;
-  refId?: string;
-}): Promise<{ xp: number; level: number }> {
+export async function awardXp(
+  params: {
+    userId: string;
+    amount: number;
+    reason: string;
+    category: string;
+    refId?: string;
+  },
+  db: Db = prisma,
+): Promise<{ xp: number; level: number }> {
   const { userId, amount, reason, category, refId } = params;
 
-  await prisma.xpTransaction.create({
+  await db.xpTransaction.create({
     data: { userId, amount, reason, category, refId },
   });
 
-  const profile = await prisma.userGameProfile.upsert({
+  const profile = await db.userGameProfile.upsert({
     where: { userId },
     create: { userId, xp: amount, level: calcLevel(amount) },
     update: { xp: { increment: amount } },
@@ -37,7 +46,7 @@ export async function awardXp(params: {
   const newLevel = calcLevel(newXp);
 
   if (newLevel !== profile.level) {
-    await prisma.userGameProfile.update({
+    await db.userGameProfile.update({
       where: { userId },
       data: { level: newLevel },
     });

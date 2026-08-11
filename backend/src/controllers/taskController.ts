@@ -291,20 +291,66 @@ export const approveTask = async (req: Request, res: Response) => {
       return sum + (def.xpWeight ?? 0);
     }, 0);
 
-    await prisma.task.update({ where: { id: taskId }, data: { approvalStatus: 'approved' } });
-
-    if (bonusXp > 0) {
-      await awardXp({
-        userId: task.createdBy,
-        amount: bonusXp,
-        reason: `Checklist de aprovação: ${task.title}`,
-        category: 'task_checklist',
-        refId: task.id,
+    // A transição de estado é o próprio guard contra corrida: duas requisições
+    // concorrentes só podem ter, no máximo, uma com count===1 (updateMany com
+    // where approvalStatus:'pending_approval' é atômico no Postgres). Só quem
+    // "ganha" a corrida credita XP e cria as notificações — tudo dentro da
+    // mesma transação, para não deixar a task 'approved' com XP não creditado
+    // em caso de crash a meio caminho.
+    const outcome = await prisma.$transaction(async (tx) => {
+      const transition = await tx.task.updateMany({
+        where: { id: taskId, approvalStatus: 'pending_approval' },
+        data: { approvalStatus: 'approved' },
       });
+      if (transition.count === 0) {
+        return { won: false as const };
+      }
+
+      if (bonusXp > 0) {
+        await awardXp(
+          {
+            userId: task.createdBy,
+            amount: bonusXp,
+            reason: `Checklist de aprovação: ${task.title}`,
+            category: 'task_checklist',
+            refId: task.id,
+          },
+          tx,
+        );
+      }
+
+      const notifications = await Promise.all(
+        task.assignments.map((a) =>
+          tx.notification.create({
+            data: {
+              userId: a.userId,
+              type: 'task_approved',
+              message: `Tarefa disponível: ${task.title}`,
+              taskId: task.id,
+            },
+          }),
+        ),
+      );
+
+      return { won: true as const, notifications };
+    });
+
+    if (!outcome.won) {
+      return res.status(400).json({ error: 'Tarefa não está pendente de aprovação' });
     }
 
-    for (const a of task.assignments) {
-      await sendNotification(a.userId, 'task_approved', `Tarefa disponível: ${task.title}`, task.id);
+    for (const n of outcome.notifications) {
+      try {
+        getIo().to(`user-${n.userId}`).emit('notification', {
+          id: n.id,
+          type: n.type,
+          message: n.message,
+          taskId: n.taskId,
+          createdAt: n.createdAt,
+        });
+      } catch {
+        // Socket.io not yet initialised in test env — safe to ignore
+      }
     }
 
     res.json({ approvalStatus: 'approved', bonusXpAwarded: bonusXp });
