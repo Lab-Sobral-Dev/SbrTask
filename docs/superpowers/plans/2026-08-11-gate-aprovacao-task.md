@@ -15,6 +15,7 @@
 - XP só é creditado via `awardXp()` (Regra #9 do CLAUDE.md) — nunca escrita direta em `UserGameProfile`.
 - `Task.status` (ciclo operacional existente) não é tocado — `approvalStatus` é um campo ortogonal novo.
 - Spec de referência: `docs/superpowers/specs/2026-08-11-gate-aprovacao-task-design.md`.
+- **Typecheck backend (todas as tasks 1-7):** `cd backend && npm run build` já falha na baseline com ~8 erros pré-existentes em `commissionController.ts`/`fieldTaskController.ts`, sem relação com este plano (registrado em [`#18`](https://github.com/Lab-Sobral-Dev/SbrTask/issues/18); lista completa em `.superpowers/sdd/2026-08-11-gate-aprovacao-task/baseline-tsc-errors.txt`). Todo "Step: Typecheck" deste plano significa: rodar `npm run build` e confirmar que **nenhum erro novo aparece nos arquivos que a task tocou** — os ~8 erros da baseline continuam lá e não bloqueiam. Não corrigir `commissionController.ts`/`fieldTaskController.ts` como parte deste plano.
 
 ---
 
