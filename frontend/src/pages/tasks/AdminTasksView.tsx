@@ -140,6 +140,7 @@ const AdminTasksView: React.FC = () => {
   const rejectPendingMutation = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) => tasks.rejectTask(id, reason),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['tasks', 'pending-approval'] });
       setRejectingId(null);
       setRejectReason('');
