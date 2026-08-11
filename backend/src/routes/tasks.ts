@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   createTask,
   getTasks,
+  getPendingApproval,
   getTaskById,
   updateTask,
   deleteTask,
@@ -19,6 +20,7 @@ router.use(authMiddleware);
 router.post('/', adminMiddleware, createTask);
 router.get('/', getTasks);
 router.get('/stats', getStats);
+router.get('/pending-approval', adminMiddleware, getPendingApproval);
 router.get('/:id', getTaskById);
 router.put('/:id', adminMiddleware, updateTask);
 router.delete('/:id', adminMiddleware, deleteTask);

@@ -125,6 +125,20 @@ export const getTasks = async (req: Request, res: Response) => {
   }
 };
 
+export const getPendingApproval = async (req: Request, res: Response) => {
+  try {
+    const pending = await prisma.task.findMany({
+      where: { approvalStatus: 'pending_approval' },
+      include: { ...taskInclude, checklistItems: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    res.json(pending);
+  } catch (error) {
+    console.error('Erro ao buscar tarefas pendentes de aprovação:', error);
+    res.status(500).json({ error: 'Erro ao buscar tarefas pendentes de aprovação' });
+  }
+};
+
 export const getStats = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest;
