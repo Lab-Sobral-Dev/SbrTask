@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { tasks, users } from '../../services/api';
 import TaskChecklistForm from '../../components/tasks/TaskChecklistForm';
-import { emptyChecklistValue, type ChecklistItemValue } from '../../lib/taskChecklist';
+import { emptyChecklistValue, TASK_CHECKLIST_ITEMS, type ChecklistItemValue } from '../../lib/taskChecklist';
 
 const adminTaskSchema = z.object({
   title: z.string().min(1, 'Título obrigatório'),
@@ -120,6 +120,32 @@ const AdminTasksView: React.FC = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   });
 
+  const { data: pendingData } = useQuery({
+    queryKey: ['tasks', 'pending-approval'],
+    queryFn: () => tasks.getPendingApproval(),
+  });
+  const pendingList = pendingData?.data ?? [];
+
+  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+
+  const approvePendingMutation = useMutation({
+    mutationFn: (id: string) => tasks.approveTask(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'pending-approval'] });
+    },
+  });
+
+  const rejectPendingMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => tasks.rejectTask(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'pending-approval'] });
+      setRejectingId(null);
+      setRejectReason('');
+    },
+  });
+
   const onSubmit = (data: AdminTaskForm) => {
     if (editingTask) {
       updateMutation.mutate({ id: editingTask.id, data });
@@ -177,6 +203,76 @@ const AdminTasksView: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {pendingList.length > 0 && (
+        <section className="tf-panel p-6">
+          <h2 className="tf-title text-xl text-[color:var(--tf-text-main)]">
+            Aprovações pendentes ({pendingList.length})
+          </h2>
+          <div className="mt-4 space-y-3">
+            {pendingList.map((task: any) => {
+              const mandatoryDefs = TASK_CHECKLIST_ITEMS.filter((i) => i.mandatory);
+              const mandatoryOk = mandatoryDefs.every(
+                (def) => task.checklistItems.find((i: any) => i.key === def.key)?.itemStatus === 'done',
+              );
+              const bonusXp = task.checklistItems.reduce((sum: number, item: any) => {
+                const def = TASK_CHECKLIST_ITEMS.find((d) => d.key === item.key);
+                if (!def || def.mandatory || item.itemStatus !== 'done') return sum;
+                return sum + (def.xpWeight ?? 0);
+              }, 0);
+
+              return (
+                <article key={task.id} className="tf-panel-inset p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <strong className="text-[color:var(--tf-text-main)]">{task.title}</strong>
+                      <p className="text-xs text-[color:var(--tf-text-dim)]">
+                        {mandatoryOk ? 'Obrigatórios ok' : 'Falta item obrigatório'} · {bonusXp} XP bônus preenchido
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => approvePendingMutation.mutate(task.id)}
+                        disabled={!mandatoryOk || approvePendingMutation.isPending}
+                        className="tf-btn tf-btn-primary disabled:opacity-50"
+                      >
+                        Aprovar
+                      </button>
+                      <button onClick={() => setRejectingId(task.id)} className="tf-btn tf-btn-secondary">
+                        Rejeitar
+                      </button>
+                    </div>
+                  </div>
+                  <details className="mt-2">
+                    <summary className="cursor-pointer text-xs text-[color:var(--tf-text-dim)]">Ver checklist</summary>
+                    <div className="mt-2">
+                      <TaskChecklistForm value={task.checklistItems} onChange={() => {}} readOnly />
+                    </div>
+                  </details>
+                  {rejectingId === task.id && (
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        type="text"
+                        value={rejectReason}
+                        onChange={(e) => setRejectReason(e.target.value)}
+                        placeholder="Motivo da rejeição"
+                        className="tf-input !text-sm"
+                      />
+                      <button
+                        onClick={() => rejectPendingMutation.mutate({ id: task.id, reason: rejectReason })}
+                        disabled={!rejectReason.trim() || rejectPendingMutation.isPending}
+                        className="tf-btn !border-[color:var(--tf-danger)] !text-[color:var(--tf-danger)] disabled:opacity-50"
+                      >
+                        Confirmar
+                      </button>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <section className="tf-panel p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
