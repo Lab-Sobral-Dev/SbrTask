@@ -4,6 +4,8 @@ import { AuthRequest } from '../middlewares/auth';
 import { getIo } from '../socket';
 import { checkAchievements } from './achievementController';
 import { checklistSubmissionSchema } from '../validators/taskChecklist';
+import { awardXp } from '../services/xp';
+import { TASK_CHECKLIST_ITEMS, getChecklistItemDef } from '../constants/taskChecklistItems';
 
 const assignmentInclude = {
   user: { select: { id: true, name: true, department: true } },
@@ -254,6 +256,61 @@ export const deleteTask = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erro ao deletar tarefa:', error);
     res.status(500).json({ error: 'Erro ao deletar tarefa' });
+  }
+};
+
+// POST /tasks/:id/approve — admin aprova a task após validar o checklist de gate.
+// Itens obrigatórios (mandatory) precisam estar 'done'; XP bônus vem só dos opcionais 'done'.
+export const approveTask = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id as string;
+
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: { checklistItems: true, assignments: true },
+    });
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+    if (task.approvalStatus !== 'pending_approval') {
+      return res.status(400).json({ error: 'Tarefa não está pendente de aprovação' });
+    }
+
+    const missingMandatory = TASK_CHECKLIST_ITEMS.filter((def) => def.mandatory).filter((def) => {
+      const item = task.checklistItems.find((i) => i.key === def.key);
+      return item?.itemStatus !== 'done';
+    });
+    if (missingMandatory.length > 0) {
+      return res.status(400).json({
+        error: 'Itens obrigatórios pendentes',
+        missing: missingMandatory.map((d) => d.key),
+      });
+    }
+
+    const bonusXp = task.checklistItems.reduce((sum, item) => {
+      const def = getChecklistItemDef(item.key);
+      if (!def || def.mandatory || item.itemStatus !== 'done') return sum;
+      return sum + (def.xpWeight ?? 0);
+    }, 0);
+
+    await prisma.task.update({ where: { id: taskId }, data: { approvalStatus: 'approved' } });
+
+    if (bonusXp > 0) {
+      await awardXp({
+        userId: task.createdBy,
+        amount: bonusXp,
+        reason: `Checklist de aprovação: ${task.title}`,
+        category: 'task_checklist',
+        refId: task.id,
+      });
+    }
+
+    for (const a of task.assignments) {
+      await sendNotification(a.userId, 'task_approved', `Tarefa disponível: ${task.title}`, task.id);
+    }
+
+    res.json({ approvalStatus: 'approved', bonusXpAwarded: bonusXp });
+  } catch (error) {
+    console.error('Erro ao aprovar tarefa:', error);
+    res.status(500).json({ error: 'Erro ao aprovar tarefa' });
   }
 };
 

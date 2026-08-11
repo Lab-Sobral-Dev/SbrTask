@@ -8,6 +8,7 @@ import {
   deleteTask,
   updateAssignment,
   approveAssignment,
+  approveTask,
   getStats,
 } from '../controllers/taskController';
 import { authMiddleware } from '../middlewares/auth';
@@ -21,6 +22,7 @@ router.post('/', adminMiddleware, createTask);
 router.get('/', getTasks);
 router.get('/stats', getStats);
 router.get('/pending-approval', adminMiddleware, getPendingApproval);
+router.post('/:id/approve', adminMiddleware, approveTask);
 router.get('/:id', getTaskById);
 router.put('/:id', adminMiddleware, updateTask);
 router.delete('/:id', adminMiddleware, deleteTask);
