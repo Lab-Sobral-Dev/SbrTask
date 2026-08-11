@@ -109,6 +109,7 @@ export const getTasks = async (req: Request, res: Response) => {
 
     if (!isAdmin) {
       where.assignments = { some: { userId: authReq.userId! } };
+      where.approvalStatus = 'approved';
     }
 
     const taskList = await prisma.task.findMany({
@@ -180,7 +181,7 @@ export const getTaskById = async (req: Request, res: Response) => {
     const task = await prisma.task.findFirst({
       where: isAdmin
         ? { id }
-        : { id, assignments: { some: { userId: authReq.userId! } } },
+        : { id, assignments: { some: { userId: authReq.userId! } }, approvalStatus: 'approved' },
       include: taskInclude,
     });
 
