@@ -504,3 +504,61 @@ export const approveAssignment = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Erro ao aprovar assignment' });
   }
 };
+
+// POST /tasks/:id/reject — admin rejeita tarefa pendente de aprovação
+// Usa updateMany com guard para prevenir corrida em double-reject concorrente
+export const rejectTask = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id as string;
+    const { reason } = req.body as { reason?: string };
+    if (!reason || reason.trim().length === 0) {
+      return res.status(400).json({ error: 'reason é obrigatório' });
+    }
+
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+
+    // Atomic guard: updateMany garante que só um ganha a transição pending_approval -> rejected
+    const outcome = await prisma.$transaction(async (tx) => {
+      const transition = await tx.task.updateMany({
+        where: { id: taskId, approvalStatus: 'pending_approval' },
+        data: { approvalStatus: 'rejected', rejectionReason: reason },
+      });
+      if (transition.count === 0) {
+        return { won: false as const };
+      }
+
+      const notification = await tx.notification.create({
+        data: {
+          userId: task.createdBy,
+          type: 'task_rejected',
+          message: `Tarefa "${task.title}" rejeitada: ${reason}`,
+          taskId: task.id,
+        },
+      });
+
+      return { won: true as const, notification };
+    });
+
+    if (!outcome.won) {
+      return res.status(400).json({ error: 'Tarefa não está pendente de aprovação' });
+    }
+
+    try {
+      getIo().to(`user-${outcome.notification.userId}`).emit('notification', {
+        id: outcome.notification.id,
+        type: outcome.notification.type,
+        message: outcome.notification.message,
+        taskId: outcome.notification.taskId,
+        createdAt: outcome.notification.createdAt,
+      });
+    } catch {
+      // Socket.io not yet initialised in test env — safe to ignore
+    }
+
+    res.json({ approvalStatus: 'rejected' });
+  } catch (error) {
+    console.error('Erro ao rejeitar tarefa:', error);
+    res.status(500).json({ error: 'Erro ao rejeitar tarefa' });
+  }
+};
