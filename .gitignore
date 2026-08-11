@@ -4,6 +4,9 @@
 # Playwright MCP artifacts
 .playwright-mcp/
 
+# Superpowers brainstorm mockups (sessão local)
+.superpowers/
+
 # Env files — nunca commitar credenciais
 .env
 .env.*
