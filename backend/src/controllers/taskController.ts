@@ -563,7 +563,20 @@ export const rejectTask = async (req: Request, res: Response) => {
   }
 };
 
-// PATCH /tasks/:id/checklist — admin atualiza checklist items de uma tarefa rejeitada
+// Erro interno usado só pra sinalizar, de dentro da transação de
+// updateChecklist, que um key submetido não bateu com nenhum
+// TaskChecklistItem existente — nunca vaza pro cliente (é traduzido pra 404
+// no catch de updateChecklist).
+class ChecklistItemNotFoundError extends Error {
+  constructor(public readonly key: string) {
+    super(`Checklist item not found: ${key}`);
+  }
+}
+
+// PATCH /tasks/:id/checklist — admin atualiza checklist items de uma tarefa
+// pendente ou rejeitada. Uma vez 'approved', o checklist fica congelado: ele
+// já foi usado para creditar XP (approveTask) e reabri-lo depois desincroniza
+// permanentemente o checklist da XpTransaction calculada a partir dele.
 export const updateChecklist = async (req: Request, res: Response) => {
   try {
     const taskId = req.params.id as string;
@@ -575,11 +588,36 @@ export const updateChecklist = async (req: Request, res: Response) => {
     const task = await prisma.task.findUnique({ where: { id: taskId } });
     if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
 
-    for (const item of parsed.data) {
-      await prisma.taskChecklistItem.update({
-        where: { taskId_key: { taskId, key: item.key } },
-        data: { itemStatus: item.itemStatus, justification: item.justification ?? null },
+    if (task.approvalStatus !== 'pending_approval' && task.approvalStatus !== 'rejected') {
+      return res.status(400).json({
+        error: 'Checklist só pode ser editado enquanto a tarefa está pendente ou rejeitada',
       });
+    }
+
+    try {
+      // updateMany por item (não update) porque o where composto não é garantia
+      // de existência — se um key não tiver linha correspondente (não deveria
+      // acontecer, createTask sempre semeia os 11, mas não é estruturalmente
+      // impossível), queremos detectar e reportar, não deixar o Prisma estourar
+      // P2025 no meio da transação.
+      await prisma.$transaction(async (tx) => {
+        for (const item of parsed.data) {
+          const result = await tx.taskChecklistItem.updateMany({
+            where: { taskId, key: item.key },
+            data: { itemStatus: item.itemStatus, justification: item.justification ?? null },
+          });
+          if (result.count === 0) {
+            throw new ChecklistItemNotFoundError(item.key);
+          }
+        }
+      });
+    } catch (txError) {
+      if (txError instanceof ChecklistItemNotFoundError) {
+        return res.status(404).json({
+          error: `Item de checklist '${txError.key}' não encontrado para esta tarefa`,
+        });
+      }
+      throw txError;
     }
 
     res.json({ message: 'Checklist atualizado' });
