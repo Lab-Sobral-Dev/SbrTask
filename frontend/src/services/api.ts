@@ -63,6 +63,7 @@ export const tasks = {
     category?: string;
     xpReward: number;
     assigneeIds: string[];
+    checklist: { key: string; itemStatus: string; justification?: string }[];
   }) => api.post('/tasks', data),
 
   update: (
@@ -86,6 +87,12 @@ export const tasks = {
     api.patch(`/tasks/${taskId}/assignment/${userId}/approve`),
 
   getStats: () => api.get('/tasks/stats'),
+
+  getPendingApproval: () => api.get('/tasks/pending-approval'),
+
+  approveTask: (id: string) => api.post(`/tasks/${id}/approve`),
+
+  rejectTask: (id: string, reason: string) => api.post(`/tasks/${id}/reject`, { reason }),
 };
 
 export const notifications = {

@@ -3,6 +3,9 @@ import prisma from '../config/prisma';
 import { AuthRequest } from '../middlewares/auth';
 import { getIo } from '../socket';
 import { checkAchievements } from './achievementController';
+import { checklistSubmissionSchema } from '../validators/taskChecklist';
+import { awardXp } from '../services/xp';
+import { TASK_CHECKLIST_ITEMS, getChecklistItemDef } from '../constants/taskChecklistItems';
 
 const assignmentInclude = {
   user: { select: { id: true, name: true, department: true } },
@@ -38,7 +41,7 @@ const sendNotification = async (
 export const createTask = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest;
-    const { title, description, priority, dueDate, category, xpReward, assigneeIds } =
+    const { title, description, priority, dueDate, category, xpReward, assigneeIds, checklist } =
       req.body as {
         title: string;
         description?: string;
@@ -47,10 +50,16 @@ export const createTask = async (req: Request, res: Response) => {
         category?: string;
         xpReward: number;
         assigneeIds: string[];
+        checklist: unknown;
       };
 
     if (!Array.isArray(assigneeIds) || assigneeIds.length === 0) {
       return res.status(400).json({ error: 'assigneeIds deve ser um array não vazio' });
+    }
+
+    const parsedChecklist = checklistSubmissionSchema.safeParse(checklist);
+    if (!parsedChecklist.success) {
+      return res.status(400).json({ error: 'checklist inválido', details: parsedChecklist.error.issues });
     }
 
     const task = await prisma.task.create({
@@ -62,16 +71,23 @@ export const createTask = async (req: Request, res: Response) => {
         category,
         xpReward,
         createdBy: authReq.userId!,
+        approvalStatus: 'pending_approval',
         assignments: {
           create: assigneeIds.map((uid) => ({ userId: uid })),
         },
+        checklistItems: {
+          create: parsedChecklist.data.map((item) => ({
+            key: item.key,
+            itemStatus: item.itemStatus,
+            justification: item.justification ?? null,
+          })),
+        },
       },
-      include: taskInclude,
+      include: { ...taskInclude, checklistItems: true },
     });
 
-    for (const uid of assigneeIds) {
-      await sendNotification(uid, 'task_assigned', `Nova tarefa atribuída: ${title}`, task.id);
-    }
+    // Nota: notificação de atribuição (task_assigned) só é enviada na aprovação
+    // (ver approveTask, Task 5) — a task não é visível pro assignee antes disso.
 
     res.status(201).json(task);
   } catch (error) {
@@ -95,6 +111,7 @@ export const getTasks = async (req: Request, res: Response) => {
 
     if (!isAdmin) {
       where.assignments = { some: { userId: authReq.userId! } };
+      where.approvalStatus = 'approved';
     }
 
     const taskList = await prisma.task.findMany({
@@ -107,6 +124,20 @@ export const getTasks = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erro ao buscar tarefas:', error);
     res.status(500).json({ error: 'Erro ao buscar tarefas' });
+  }
+};
+
+export const getPendingApproval = async (req: Request, res: Response) => {
+  try {
+    const pending = await prisma.task.findMany({
+      where: { approvalStatus: 'pending_approval' },
+      include: { ...taskInclude, checklistItems: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    res.json(pending);
+  } catch (error) {
+    console.error('Erro ao buscar tarefas pendentes de aprovação:', error);
+    res.status(500).json({ error: 'Erro ao buscar tarefas pendentes de aprovação' });
   }
 };
 
@@ -166,7 +197,7 @@ export const getTaskById = async (req: Request, res: Response) => {
     const task = await prisma.task.findFirst({
       where: isAdmin
         ? { id }
-        : { id, assignments: { some: { userId: authReq.userId! } } },
+        : { id, assignments: { some: { userId: authReq.userId! } }, approvalStatus: 'approved' },
       include: taskInclude,
     });
 
@@ -225,6 +256,107 @@ export const deleteTask = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erro ao deletar tarefa:', error);
     res.status(500).json({ error: 'Erro ao deletar tarefa' });
+  }
+};
+
+// POST /tasks/:id/approve — admin aprova a task após validar o checklist de gate.
+// Itens obrigatórios (mandatory) precisam estar 'done'; XP bônus vem só dos opcionais 'done'.
+export const approveTask = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id as string;
+
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: { checklistItems: true, assignments: true },
+    });
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+    if (task.approvalStatus !== 'pending_approval') {
+      return res.status(400).json({ error: 'Tarefa não está pendente de aprovação' });
+    }
+
+    const missingMandatory = TASK_CHECKLIST_ITEMS.filter((def) => def.mandatory).filter((def) => {
+      const item = task.checklistItems.find((i) => i.key === def.key);
+      return item?.itemStatus !== 'done';
+    });
+    if (missingMandatory.length > 0) {
+      return res.status(400).json({
+        error: 'Itens obrigatórios pendentes',
+        missing: missingMandatory.map((d) => d.key),
+      });
+    }
+
+    const bonusXp = task.checklistItems.reduce((sum, item) => {
+      const def = getChecklistItemDef(item.key);
+      if (!def || def.mandatory || item.itemStatus !== 'done') return sum;
+      return sum + (def.xpWeight ?? 0);
+    }, 0);
+
+    // A transição de estado é o próprio guard contra corrida: duas requisições
+    // concorrentes só podem ter, no máximo, uma com count===1 (updateMany com
+    // where approvalStatus:'pending_approval' é atômico no Postgres). Só quem
+    // "ganha" a corrida credita XP e cria as notificações — tudo dentro da
+    // mesma transação, para não deixar a task 'approved' com XP não creditado
+    // em caso de crash a meio caminho.
+    const outcome = await prisma.$transaction(async (tx) => {
+      const transition = await tx.task.updateMany({
+        where: { id: taskId, approvalStatus: 'pending_approval' },
+        data: { approvalStatus: 'approved' },
+      });
+      if (transition.count === 0) {
+        return { won: false as const };
+      }
+
+      if (bonusXp > 0) {
+        await awardXp(
+          {
+            userId: task.createdBy,
+            amount: bonusXp,
+            reason: `Checklist de aprovação: ${task.title}`,
+            category: 'task_checklist',
+            refId: task.id,
+          },
+          tx,
+        );
+      }
+
+      const notifications = await Promise.all(
+        task.assignments.map((a) =>
+          tx.notification.create({
+            data: {
+              userId: a.userId,
+              type: 'task_approved',
+              message: `Tarefa disponível: ${task.title}`,
+              taskId: task.id,
+            },
+          }),
+        ),
+      );
+
+      return { won: true as const, notifications };
+    });
+
+    if (!outcome.won) {
+      return res.status(400).json({ error: 'Tarefa não está pendente de aprovação' });
+    }
+
+    for (const n of outcome.notifications) {
+      try {
+        getIo().to(`user-${n.userId}`).emit('notification', {
+          id: n.id,
+          type: n.type,
+          message: n.message,
+          taskId: n.taskId,
+          createdAt: n.createdAt,
+        });
+      } catch {
+        // Socket.io not yet initialised in test env — safe to ignore
+      }
+    }
+
+    res.json({ approvalStatus: 'approved', bonusXpAwarded: bonusXp });
+  } catch (error) {
+    console.error('Erro ao aprovar tarefa:', error);
+    res.status(500).json({ error: 'Erro ao aprovar tarefa' });
   }
 };
 
@@ -370,5 +502,149 @@ export const approveAssignment = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erro ao aprovar assignment:', error);
     res.status(500).json({ error: 'Erro ao aprovar assignment' });
+  }
+};
+
+// POST /tasks/:id/reject — admin rejeita tarefa pendente de aprovação
+// Usa updateMany com guard para prevenir corrida em double-reject concorrente
+export const rejectTask = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id as string;
+    const { reason } = req.body as { reason?: string };
+    if (!reason || reason.trim().length === 0) {
+      return res.status(400).json({ error: 'reason é obrigatório' });
+    }
+
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+
+    // Atomic guard: updateMany garante que só um ganha a transição pending_approval -> rejected
+    const outcome = await prisma.$transaction(async (tx) => {
+      const transition = await tx.task.updateMany({
+        where: { id: taskId, approvalStatus: 'pending_approval' },
+        data: { approvalStatus: 'rejected', rejectionReason: reason },
+      });
+      if (transition.count === 0) {
+        return { won: false as const };
+      }
+
+      const notification = await tx.notification.create({
+        data: {
+          userId: task.createdBy,
+          type: 'task_rejected',
+          message: `Tarefa "${task.title}" rejeitada: ${reason}`,
+          taskId: task.id,
+        },
+      });
+
+      return { won: true as const, notification };
+    });
+
+    if (!outcome.won) {
+      return res.status(400).json({ error: 'Tarefa não está pendente de aprovação' });
+    }
+
+    try {
+      getIo().to(`user-${outcome.notification.userId}`).emit('notification', {
+        id: outcome.notification.id,
+        type: outcome.notification.type,
+        message: outcome.notification.message,
+        taskId: outcome.notification.taskId,
+        createdAt: outcome.notification.createdAt,
+      });
+    } catch {
+      // Socket.io not yet initialised in test env — safe to ignore
+    }
+
+    res.json({ approvalStatus: 'rejected' });
+  } catch (error) {
+    console.error('Erro ao rejeitar tarefa:', error);
+    res.status(500).json({ error: 'Erro ao rejeitar tarefa' });
+  }
+};
+
+// Erro interno usado só pra sinalizar, de dentro da transação de
+// updateChecklist, que um key submetido não bateu com nenhum
+// TaskChecklistItem existente — nunca vaza pro cliente (é traduzido pra 404
+// no catch de updateChecklist).
+class ChecklistItemNotFoundError extends Error {
+  constructor(public readonly key: string) {
+    super(`Checklist item not found: ${key}`);
+  }
+}
+
+// PATCH /tasks/:id/checklist — admin atualiza checklist items de uma tarefa
+// pendente ou rejeitada. Uma vez 'approved', o checklist fica congelado: ele
+// já foi usado para creditar XP (approveTask) e reabri-lo depois desincroniza
+// permanentemente o checklist da XpTransaction calculada a partir dele.
+export const updateChecklist = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id as string;
+    const parsed = checklistSubmissionSchema.safeParse(req.body.checklist);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'checklist inválido', details: parsed.error.issues });
+    }
+
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+
+    if (task.approvalStatus !== 'pending_approval' && task.approvalStatus !== 'rejected') {
+      return res.status(400).json({
+        error: 'Checklist só pode ser editado enquanto a tarefa está pendente ou rejeitada',
+      });
+    }
+
+    try {
+      // updateMany por item (não update) porque o where composto não é garantia
+      // de existência — se um key não tiver linha correspondente (não deveria
+      // acontecer, createTask sempre semeia os 11, mas não é estruturalmente
+      // impossível), queremos detectar e reportar, não deixar o Prisma estourar
+      // P2025 no meio da transação.
+      await prisma.$transaction(async (tx) => {
+        for (const item of parsed.data) {
+          const result = await tx.taskChecklistItem.updateMany({
+            where: { taskId, key: item.key },
+            data: { itemStatus: item.itemStatus, justification: item.justification ?? null },
+          });
+          if (result.count === 0) {
+            throw new ChecklistItemNotFoundError(item.key);
+          }
+        }
+      });
+    } catch (txError) {
+      if (txError instanceof ChecklistItemNotFoundError) {
+        return res.status(404).json({
+          error: `Item de checklist '${txError.key}' não encontrado para esta tarefa`,
+        });
+      }
+      throw txError;
+    }
+
+    res.json({ message: 'Checklist atualizado' });
+  } catch (error) {
+    console.error('Erro ao atualizar checklist:', error);
+    res.status(500).json({ error: 'Erro ao atualizar checklist' });
+  }
+};
+
+// POST /tasks/:id/resubmit — reenviar tarefa rejeitada de volta para pending_approval
+export const resubmitTask = async (req: Request, res: Response) => {
+  try {
+    const taskId = req.params.id as string;
+    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' });
+    if (task.approvalStatus !== 'rejected') {
+      return res.status(400).json({ error: 'Tarefa não está rejeitada' });
+    }
+
+    await prisma.task.update({
+      where: { id: taskId },
+      data: { approvalStatus: 'pending_approval', rejectionReason: null },
+    });
+
+    res.json({ approvalStatus: 'pending_approval' });
+  } catch (error) {
+    console.error('Erro ao reenviar tarefa:', error);
+    res.status(500).json({ error: 'Erro ao reenviar tarefa' });
   }
 };
